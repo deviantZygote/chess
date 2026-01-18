@@ -18,6 +18,29 @@ public class ChessPiece {
         this.setPieceType(type);
     }
 
+    @Override
+    public boolean equals (Object o) {
+        if (this == o) {
+            return true;
+        } else if (o == null) {
+            return false;
+        } else if ( this.getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChessPiece piece = (ChessPiece) o;
+
+        return piece.getTeamColor() == this.getTeamColor() && piece.getPieceType() == this.getPieceType();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        hash = 37 * hash + this.getPieceType().hashCode();
+        hash = 37 * hash + this.getTeamColor().hashCode();
+        return hash;
+    }
+
     /**
      * The various different chess piece options
      */
