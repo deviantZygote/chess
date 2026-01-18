@@ -85,6 +85,9 @@ public class ChessBoard {
         this.setUpBlack();
     }
 
+    /**
+     * Resets each ChessPiece to null in the board
+     */
     private void clearBoard() {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++){
@@ -93,6 +96,9 @@ public class ChessBoard {
         }
     }
 
+    /**
+     * Sets up all the black pieces
+     */
     private void setUpBlack () {
         this.setUpBlackPawns();
         this.setUpBlackPawns();
@@ -161,6 +167,9 @@ public class ChessBoard {
         }
     }
 
+    /**
+     * sets up all the white pieces
+     */
     private void setUpWhite() {
         this.setUpWhitePawns();
         this.setUpWhiteBishops();
