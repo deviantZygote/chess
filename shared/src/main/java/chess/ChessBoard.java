@@ -101,28 +101,20 @@ public class ChessBoard {
      */
     private void setUpBlack () {
         this.setUpBlackPawns();
-        this.setUpBlackPawns();
-        this.setUpBlackBishops();
-        this.setUpBlackKnights();
         this.setUpBlackRooks();
+        this.setUpBlackKnights();
+        this.setUpBlackBishops();
         this.setUpBlackQueen();
         this.setUpBlackKing();
     }
 
-    private void setUpBlackKing() {
-        int row = 8;
-        int col = 5;
-        ChessPiece king = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
-        ChessPosition position = new ChessPosition(row, col);
-        this.addPiece(position, king);
-    }
-
-    private void setUpBlackQueen() {
-        int row = 8;
-        int col = 4;
-        ChessPiece queen = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
-        ChessPosition position = new ChessPosition(row, col);
-        this.addPiece(position, queen);
+    private void setUpBlackPawns() {
+        int row = 7;
+        ChessPiece piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+        for (int i = 1; i < 9; i++) {
+            ChessPosition position = new ChessPosition(row, i);
+            this.addPiece(position, piece);
+        }
     }
 
     private void setUpBlackRooks() {
@@ -147,15 +139,6 @@ public class ChessBoard {
         }
     }
 
-    private void setUpBlackPawns() {
-        int row = 7;
-        ChessPiece piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
-        for (int i = 1; i < 9; i++) {
-            ChessPosition position = new ChessPosition(row, i);
-            this.addPiece(position, piece);
-        }
-    }
-
     private void setUpBlackBishops() {
         int row = 8;
         int [] cols = {3, 6};
@@ -167,14 +150,30 @@ public class ChessBoard {
         }
     }
 
+    private void setUpBlackQueen() {
+        int row = 8;
+        int col = 4;
+        ChessPiece queen = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
+        ChessPosition position = new ChessPosition(row, col);
+        this.addPiece(position, queen);
+    }
+
+    private void setUpBlackKing() {
+        int row = 8;
+        int col = 5;
+        ChessPiece king = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+        ChessPosition position = new ChessPosition(row, col);
+        this.addPiece(position, king);
+    }
+
     /**
      * sets up all the white pieces
      */
     private void setUpWhite() {
         this.setUpWhitePawns();
-        this.setUpWhiteBishops();
-        this.setUpWhiteKnights();
         this.setUpWhiteRooks();
+        this.setUpWhiteKnights();
+        this.setUpWhiteBishops();
         this.setUpWhiteQueen();
         this.setUpWhiteKing();
     }
