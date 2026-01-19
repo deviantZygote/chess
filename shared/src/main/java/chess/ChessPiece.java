@@ -1,5 +1,7 @@
 package chess;
 
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -39,6 +41,14 @@ public class ChessPiece {
         hash = 37 * hash + this.getPieceType().hashCode();
         hash = 37 * hash + this.getTeamColor().hashCode();
         return hash;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "teamColor=" + teamColor +
+                ", pieceType=" + pieceType +
+                '}';
     }
 
     /**
@@ -83,6 +93,93 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> legalMoves = new ArrayList<>();
+        switch (this.getPieceType()) {
+            case PieceType.PAWN:
+                legalMoves = pawnMoves(board, myPosition);
+                break;
+            case PieceType.ROOK:
+                // method to rook
+                break;
+            case PieceType.KNIGHT:
+                // method to knight
+                break;
+            case PieceType.BISHOP:
+                // method to bishop
+                break;
+            case PieceType.QUEEN:
+                // method to queen
+                break;
+            case PieceType.KING:
+                // method to king
+                legalMoves = kingMoves(board, myPosition);
+                break;
+        }
+        return legalMoves;
+    }
+
+    private ArrayList<ChessMove> kingMoves (ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
+        ChessMove chessMove;
+        ChessPosition endPosition;
+
+        // checking 1 up
+        endPosition = new ChessPosition(position.getRow() + 1 , position.getColumn());
+        chessMove = new ChessMove(position, endPosition, null);
+        legalMoves.add(chessMove);
+
+        return legalMoves;
+    }
+
+    private ArrayList<ChessMove> pawnMoves (ChessBoard board, ChessPosition position) {
+
+        ArrayList<ChessMove> pawnMoves = new ArrayList<ChessMove>();
+        ChessMove checkingMove;
+        ChessPosition endingPosition;
+        ChessPosition middlePosition;
+
+        // Moving 2 at start row
+        if (this.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            // White Pawn
+            if (position.getRow() == 2) {
+                endingPosition = new ChessPosition(position.getRow() + 2, position.getColumn());
+                middlePosition = new ChessPosition(position.getRow() + 1, position.getColumn());
+                checkingMove = new ChessMove(position, endingPosition, null);
+                if ( isEmpty(board, endingPosition) && isEmpty(board, middlePosition) ){
+                    pawnMoves.add(checkingMove);
+                }
+            }
+        } else {
+            // Black Pawn
+            if (position.getRow() == 7) {
+                endingPosition = new ChessPosition(position.getRow() - 2, position.getColumn());
+                middlePosition = new ChessPosition(position.getRow() - 1, position.getColumn());
+                checkingMove = new ChessMove(position, endingPosition, null);
+                if ( isEmpty(board, endingPosition) && isEmpty(board, middlePosition) ){
+                    pawnMoves.add(checkingMove);
+                }
+            }
+        }
+        return pawnMoves;
+    }
+
+
+    private boolean doesColorMatch(ChessBoard board, ChessPosition targetPosition, ChessGame.TeamColor teamColor) {
+        ChessPiece targetPiece = board.getPiece(targetPosition);
+
+        if (this.teamColor == targetPiece.teamColor) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isEmpty(ChessBoard board, ChessPosition targetPosition) {
+        ChessPiece targetPiece = board.getPiece(targetPosition);
+        if (targetPiece == null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
