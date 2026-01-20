@@ -70,9 +70,19 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
+        if (this.isOutOfBounds(position)) {
+            return null;
+        }
         int row = position.getRow();
         int col = position.getColumn();
         return this.board[row-1][col-1];
+    }
+
+    public boolean isOutOfBounds(ChessPosition position) {
+        if (position.getRow() > 8 || position.getRow() < 1 || position.getColumn() > 8 || position.getColumn() < 1) {
+            return true;
+        }
+        return false;
     }
 
     /**

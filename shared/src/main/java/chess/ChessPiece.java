@@ -120,14 +120,18 @@ public class ChessPiece {
 
     private ArrayList<ChessMove> kingMoves (ChessBoard board, ChessPosition position) {
         ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
-        ChessMove chessMove;
-        ChessPosition endPosition;
-
-        // checking 1 up
-        endPosition = new ChessPosition(position.getRow() + 1 , position.getColumn());
-        chessMove = new ChessMove(position, endPosition, null);
-        legalMoves.add(chessMove);
-
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
+        possiblePositions = getKingPossibleEndPositions(board, position);
+        ChessMove possibleMove;
+        for (ChessPosition possibleEndPosition : possiblePositions) {
+            if (!board.isOutOfBounds(possibleEndPosition) && isEmpty(board, possibleEndPosition)) {
+                possibleMove = new ChessMove(position, possibleEndPosition, null);
+                legalMoves.add(possibleMove);
+            } else if (!isEmpty(board, possibleEndPosition) && !doesColorMatch(board, possibleEndPosition, this.teamColor) && !board.isOutOfBounds(possibleEndPosition)) {
+                possibleMove = new ChessMove(position, possibleEndPosition, null);
+                legalMoves.add(possibleMove);
+            }
+        }
         return legalMoves;
     }
 
@@ -152,6 +156,38 @@ public class ChessPiece {
         return pawnMoves;
     }
 
+    private ArrayList<ChessPosition> getKingPossibleEndPositions (ChessBoard board, ChessPosition position) {
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
+
+        // up left
+        possiblePositions.add(new ChessPosition(position.getRow() + 1, position.getColumn() -1));
+
+        // up
+        possiblePositions.add(new ChessPosition(position.getRow() + 1, position.getColumn()));
+
+        // up right
+        possiblePositions.add(new ChessPosition(position.getRow() + 1, position.getColumn() + 1));
+
+
+        // right
+        possiblePositions.add(new ChessPosition(position.getRow(), position.getColumn() + 1));
+
+
+        // down right
+        possiblePositions.add(new ChessPosition(position.getRow() -1, position.getColumn() + 1));
+
+        // down
+        possiblePositions.add(new ChessPosition(position.getRow() -1, position.getColumn()));
+
+        // down left
+        possiblePositions.add(new ChessPosition(position.getRow() -1 , position.getColumn() - 1));
+
+        // left
+        possiblePositions.add(new ChessPosition(position.getRow(), position.getColumn() - 1));
+
+        return possiblePositions;
+    }
+
     private ArrayList<ChessMove> diagCapture(ChessBoard board, ChessPosition position) {
         ArrayList<ChessMove> diagMoves = new ArrayList<ChessMove>();
 
@@ -159,7 +195,7 @@ public class ChessPiece {
         ArrayList<ChessPosition> positions = getDiagPositions(position);
 
         for (ChessPosition diagPosition : positions) {
-            if ( !isOutOfBounds(diagPosition) && !isEmpty(board, diagPosition) && !doesColorMatch(board, diagPosition, this.teamColor) ) {
+            if ( !board.isOutOfBounds(diagPosition) && !isEmpty(board, diagPosition) && !doesColorMatch(board, diagPosition, this.teamColor) ) {
                 if (isEligibleForPromo(diagPosition)) {
                     // create 4 moves with different promotion options
                     ChessMove diagMoveQueenPromo = new ChessMove(position, diagPosition, PieceType.QUEEN);
@@ -294,13 +330,6 @@ public class ChessPiece {
         } else {
             return false;
         }
-    }
-
-    private boolean isOutOfBounds(ChessPosition position) {
-        if (position.getRow() > 8 || position.getRow() < 1 || position.getColumn() > 8 || position.getColumn() < 1) {
-           return true;
-        }
-        return false;
     }
 
     private boolean doesColorMatch(ChessBoard board, ChessPosition targetPosition, ChessGame.TeamColor teamColor) {
