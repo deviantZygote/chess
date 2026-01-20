@@ -134,7 +134,59 @@ public class ChessPiece {
     private ArrayList<ChessMove> pawnMoves (ChessBoard board, ChessPosition position) {
 
         ArrayList<ChessMove> pawnMoves = new ArrayList<ChessMove>();
-        ChessMove checkingMove;
+
+        // jump 2 forward when empty in front
+        ChessMove twoForward = getTwoForwardPawnMove(board, position);
+        if (twoForward != null) {
+            pawnMoves.add(twoForward);
+        }
+
+        // diagonal capture
+        ArrayList<ChessMove> diagCaptureMoves = diagCapture(board, position);
+        pawnMoves.addAll(diagCaptureMoves);
+
+            // check for promotion
+        // forward 1
+            // check for promotion
+
+        return pawnMoves;
+    }
+
+    private ArrayList<ChessMove> diagCapture(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> diagMoves = new ArrayList<ChessMove>();
+
+        // going to rewrite this to return target positions depending on if it's black or white and then apply the logic checks
+        ArrayList<ChessPosition> positions = getDiagPositions(position);
+
+        for (ChessPosition diagPosition : positions) {
+            if ( !isOutOfBounds(diagPosition) && !isEmpty(board, diagPosition) && !doesColorMatch(board, diagPosition, this.teamColor) ) {
+                if (isEligibleForPromo(diagPosition)) {
+                    // create 4 moves with different promotion options
+                    ChessMove diagMoveQueenPromo = new ChessMove(position, diagPosition, PieceType.QUEEN);
+                    diagMoves.add(diagMoveQueenPromo);
+
+                    ChessMove diagMoveBishopPromo = new ChessMove(position, diagPosition, PieceType.BISHOP);
+                    diagMoves.add(diagMoveBishopPromo);
+
+                    ChessMove diagMoveKnightPromo = new ChessMove(position, diagPosition, PieceType.KNIGHT);
+                    diagMoves.add(diagMoveKnightPromo);
+
+                    ChessMove diagMoveRookPromo = new ChessMove(position, diagPosition, PieceType.ROOK);
+                    diagMoves.add(diagMoveRookPromo);
+
+                } else {
+                    ChessMove diagMove = new ChessMove(position, diagPosition, null);
+                    diagMoves.add(diagMove);
+                }
+            }
+        }
+
+        return diagMoves;
+
+    }
+
+    private ChessMove getTwoForwardPawnMove(ChessBoard board, ChessPosition position) {
+        ChessMove targetMove;
         ChessPosition endingPosition;
         ChessPosition middlePosition;
 
@@ -144,25 +196,73 @@ public class ChessPiece {
             if (position.getRow() == 2) {
                 endingPosition = new ChessPosition(position.getRow() + 2, position.getColumn());
                 middlePosition = new ChessPosition(position.getRow() + 1, position.getColumn());
-                checkingMove = new ChessMove(position, endingPosition, null);
+                targetMove = new ChessMove(position, endingPosition, null);
                 if ( isEmpty(board, endingPosition) && isEmpty(board, middlePosition) ){
-                    pawnMoves.add(checkingMove);
+                    return targetMove;
                 }
             }
-        } else {
+        } else if (this.getTeamColor() == ChessGame.TeamColor.BLACK){
             // Black Pawn
             if (position.getRow() == 7) {
                 endingPosition = new ChessPosition(position.getRow() - 2, position.getColumn());
                 middlePosition = new ChessPosition(position.getRow() - 1, position.getColumn());
-                checkingMove = new ChessMove(position, endingPosition, null);
+                targetMove = new ChessMove(position, endingPosition, null);
                 if ( isEmpty(board, endingPosition) && isEmpty(board, middlePosition) ){
-                    pawnMoves.add(checkingMove);
+                    return targetMove;
                 }
             }
+        } else {
+            return null;
         }
-        return pawnMoves;
+        return null;
     }
 
+    private ArrayList<ChessPosition> getDiagPositions (ChessPosition position) {
+        ArrayList<ChessPosition> diagPositions = new ArrayList<ChessPosition>();
+        ChessPosition diagLeft;
+        ChessPosition diagRight;
+        if (this.teamColor == ChessGame.TeamColor.WHITE) {
+            diagLeft = new ChessPosition(position.getRow() + 1, position.getColumn() -1);
+            diagPositions.add(diagLeft);
+
+            diagRight = new ChessPosition(position.getRow() + 1, position.getColumn() + 1);
+            diagPositions.add(diagRight);
+            return diagPositions;
+        } else {
+            diagLeft = new ChessPosition(position.getRow() - 1, position.getColumn() + 1);
+            diagPositions.add(diagLeft);
+
+            diagRight = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);
+            diagPositions.add(diagRight);
+            return diagPositions;
+        }
+    }
+
+    private ArrayList<ChessMove> getPromoMoves (ChessMove move){
+        ChessPiece.PieceType[] promoPieces = {PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP};
+        ArrayList<ChessMove> promoMoves = new ArrayList<>();
+        for (PieceType pieceType : promoPieces) {
+            promoMoves.add(new ChessMove(move.startPosition, move.endPosition, pieceType));
+        }
+        return promoMoves;
+    }
+
+    private boolean isEligibleForPromo(ChessPosition position) {
+        if (this.teamColor == ChessGame.TeamColor.WHITE && position.getRow() == 8) {
+            return true;
+        } else if (this.teamColor == ChessGame.TeamColor.BLACK && position.getRow() == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isOutOfBounds(ChessPosition position) {
+        if (position.getRow() > 8 || position.getRow() < 1 || position.getColumn() > 8 || position.getColumn() < 1) {
+           return true;
+        }
+        return false;
+    }
 
     private boolean doesColorMatch(ChessBoard board, ChessPosition targetPosition, ChessGame.TeamColor teamColor) {
         ChessPiece targetPiece = board.getPiece(targetPosition);
