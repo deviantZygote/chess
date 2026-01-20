@@ -145,9 +145,9 @@ public class ChessPiece {
         ArrayList<ChessMove> diagCaptureMoves = diagCapture(board, position);
         pawnMoves.addAll(diagCaptureMoves);
 
-            // check for promotion
         // forward 1
-            // check for promotion
+        ArrayList<ChessMove> oneForwardMoves = oneForward(board, position);
+        pawnMoves.addAll(oneForwardMoves);
 
         return pawnMoves;
     }
@@ -183,6 +183,45 @@ public class ChessPiece {
 
         return diagMoves;
 
+    }
+
+    private ArrayList<ChessMove> oneForward(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> targetMoves = new ArrayList<ChessMove>();
+        ChessMove targetMove;
+        ChessPosition targetPosition = getOneForwardPosition(position);
+
+        if ( isEmpty(board, targetPosition) ) {
+            if (!isEligibleForPromo(targetPosition)) {
+                targetMove = new ChessMove(position, targetPosition, null);
+                targetMoves.add(targetMove);
+                return targetMoves;
+            } else {
+                ChessMove diagMoveQueenPromo = new ChessMove(position, targetPosition, PieceType.QUEEN);
+                targetMoves.add(diagMoveQueenPromo);
+
+                ChessMove diagMoveBishopPromo = new ChessMove(position, targetPosition, PieceType.BISHOP);
+                targetMoves.add(diagMoveBishopPromo);
+
+                ChessMove diagMoveKnightPromo = new ChessMove(position, targetPosition, PieceType.KNIGHT);
+                targetMoves.add(diagMoveKnightPromo);
+
+                ChessMove diagMoveRookPromo = new ChessMove(position, targetPosition, PieceType.ROOK);
+                targetMoves.add(diagMoveRookPromo);
+
+                return targetMoves;
+            }
+        }
+        return targetMoves;
+    }
+
+    private ChessPosition getOneForwardPosition(ChessPosition position) {
+        ChessPosition forwardPosition;
+        if (this.teamColor == ChessGame.TeamColor.WHITE) {
+            return forwardPosition = new ChessPosition(position.getRow() + 1, position.getColumn());
+        } else {
+            return forwardPosition = new ChessPosition(position.getRow() - 1, position.getColumn());
+
+        }
     }
 
     private ChessMove getTwoForwardPawnMove(ChessBoard board, ChessPosition position) {
