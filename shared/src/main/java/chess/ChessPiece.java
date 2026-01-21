@@ -104,7 +104,7 @@ public class ChessPiece {
                 break;
             case PieceType.KNIGHT:
                 // method to knight
-//                legalMoves = knightMoves(board, myPosition);
+                legalMoves = knightMoves(board, myPosition);
                 break;
             case PieceType.BISHOP:
                 // method to bishop
@@ -112,6 +112,7 @@ public class ChessPiece {
                 break;
             case PieceType.QUEEN:
                 // method to queen
+                legalMoves = queenMoves(board, myPosition);
                 break;
             case PieceType.KING:
                 // method to king
@@ -121,17 +122,120 @@ public class ChessPiece {
         return legalMoves;
     }
 
+    private ArrayList<ChessMove> knightMoves (ChessBoard board, ChessPosition myPosition) {
+        ArrayList<ChessMove> knightMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<>();
+
+        possiblePositions = getKnightPossiblePositions(board, myPosition);
+        knightMoves.addAll(getMoves(myPosition, possiblePositions, null));
+
+        return knightMoves;
+    }
+
+    private ArrayList<ChessMove> getMoves(ChessPosition startingPosition, ArrayList<ChessPosition> targetPositions, ChessPiece.PieceType promoPiece) {
+        ArrayList<ChessMove> moves = new ArrayList<>();
+
+        for (ChessPosition position : targetPositions) {
+            moves.add(new ChessMove(startingPosition, position, promoPiece));
+        }
+
+        return moves;
+    }
+
+    private ArrayList<ChessPosition> getKnightPossiblePositions(ChessBoard board, ChessPosition startingPosition) {
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<>();
+        ArrayList<ChessPosition> validatedPositions = new ArrayList<>();
+        ChessPosition possiblePosition;
+
+        direction [] upDown = {direction.UP, direction.DOWN};
+        direction [] leftRight = {direction.LEFT, direction.RIGHT};
+
+        for (direction upDown2Position : upDown) {
+            for (direction leftRight1Position : leftRight) {
+                if (upDown2Position == direction.UP && leftRight1Position == direction.LEFT) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() + 2, startingPosition.getColumn() - 1));
+                } else if (upDown2Position == direction.UP && leftRight1Position == direction.RIGHT) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() + 2, startingPosition.getColumn() + 1));
+                } else if (upDown2Position == direction.DOWN && leftRight1Position == direction.LEFT) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() - 2, startingPosition.getColumn() - 1));
+                } else if (upDown2Position == direction.DOWN && leftRight1Position == direction.RIGHT) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() - 2, startingPosition.getColumn() + 1));
+                }
+            }
+        }
+
+        for (direction leftRight2 : leftRight) {
+            for (direction upDown1 : upDown) {
+                if (leftRight2 == direction.LEFT && upDown1 == direction.UP) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() + 1, startingPosition.getColumn() - 2));
+                } else if (leftRight2 == direction.LEFT && upDown1 == direction.DOWN){
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() - 1, startingPosition.getColumn() - 2));
+                } else if (leftRight2 == direction.RIGHT && upDown1 == direction.UP) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() + 1, startingPosition.getColumn() + 2));
+                } else if (leftRight2 == direction.RIGHT && upDown1 == direction.DOWN) {
+                    possiblePositions.add(possiblePosition = new ChessPosition(startingPosition.getRow() - 1, startingPosition.getColumn() + 2));
+                }
+            }
+        }
+
+        for (ChessPosition position : possiblePositions) {
+            if (validatePosition(board, position)) {
+                validatedPositions.add(position);
+            }
+        }
+
+        return validatedPositions;
+    }
+
+    private boolean validatePosition(ChessBoard board, ChessPosition targetPosition) {
+        if (isEmpty(board, targetPosition) && !board.isOutOfBounds(targetPosition)) {
+            return true;
+        }
+
+        if (!isEmpty(board, targetPosition) && !board.isOutOfBounds(targetPosition) && !doesColorMatch(board, targetPosition, this.getTeamColor())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private ArrayList<ChessMove> queenMoves (ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> queenMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
+
+        possiblePositions = getQueenPossiblePositions(board, position);
+        queenMoves.addAll(getPossibleMoves(possiblePositions, position));
+
+        return queenMoves;
+    }
+
+    private ArrayList<ChessPosition> getQueenPossiblePositions(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
+
+        possiblePositions.addAll(getBarMove(board, position, direction.UPLEFT));
+        possiblePositions.addAll(getBarMove(board, position, direction.UP));
+        possiblePositions.addAll(getBarMove(board, position, direction.UPRIGHT));
+        possiblePositions.addAll(getBarMove(board, position, direction.RIGHT));
+        possiblePositions.addAll(getBarMove(board, position, direction.DOWNRIGHT));
+        possiblePositions.addAll(getBarMove(board, position, direction.DOWN));
+        possiblePositions.addAll(getBarMove(board, position, direction.DOWNLEFT));
+        possiblePositions.addAll(getBarMove(board, position, direction.LEFT));
+
+        return possiblePositions;
+
+    }
+
     private ArrayList<ChessMove> bishopMoves (ChessBoard board, ChessPosition position) {
         ArrayList<ChessMove> bishopMoves = new ArrayList<ChessMove>();
         ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
 
         possiblePositions = getBishopPossiblePositions(board, position);
-        bishopMoves.addAll(getBishopPossibleMoves(possiblePositions, position));
+        bishopMoves.addAll(getPossibleMoves(possiblePositions, position));
 
         return bishopMoves;
     }
 
-    private ArrayList<ChessMove> getBishopPossibleMoves(ArrayList<ChessPosition> legalPositions, ChessPosition startingPosition) {
+    private ArrayList<ChessMove> getPossibleMoves(ArrayList<ChessPosition> legalPositions, ChessPosition startingPosition) {
         ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
 
         for(ChessPosition legalPosition : legalPositions) {
