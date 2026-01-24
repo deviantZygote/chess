@@ -125,7 +125,7 @@ public class ChessPiece {
         possiblePositions.addAll(getDiagCapturePositions(board, startingPosition));
 
         // forward 1
-        possiblePositions.addAll(getOneForward(board, startingPosition));
+        possiblePositions.addAll(getOneForwardPosition(board, startingPosition));
 
         // forward 2
         possiblePositions.addAll(getTwoForwardPosition(board, startingPosition));
@@ -207,16 +207,6 @@ public class ChessPiece {
         return false;
     }
 
-    private ArrayList<ChessMove> queenMoves (ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> queenMoves = new ArrayList<ChessMove>();
-        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
-
-        possiblePositions = getQueenPossiblePositions(board, position);
-        queenMoves.addAll(getPossibleMoves(possiblePositions, position));
-
-        return queenMoves;
-    }
-
     private ArrayList<ChessPosition> getQueenPossiblePositions(ChessBoard board, ChessPosition position) {
         ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
 
@@ -231,45 +221,6 @@ public class ChessPiece {
 
         return possiblePositions;
 
-    }
-
-    private ArrayList<ChessMove> bishopMoves (ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> bishopMoves = new ArrayList<ChessMove>();
-        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
-
-        possiblePositions = getBishopPossiblePositions(board, position);
-        bishopMoves.addAll(getPossibleMoves(possiblePositions, position));
-
-        return bishopMoves;
-    }
-
-    private ArrayList<ChessMove> getPossibleMoves(ArrayList<ChessPosition> legalPositions, ChessPosition startingPosition) {
-        ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
-
-        for(ChessPosition legalPosition : legalPositions) {
-            legalMoves.add(new ChessMove(startingPosition, legalPosition, null));
-        }
-
-        return legalMoves;
-    }
-
-    private ArrayList<ChessMove> rookMoves (ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
-        ArrayList<ChessPosition> possiblePositions = new ArrayList<ChessPosition>();
-        possiblePositions = getRookPossiblePositions(board, position);
-        legalMoves.addAll(getRookPossibleMoves(possiblePositions, position));
-
-        return legalMoves;
-    }
-
-    private ArrayList<ChessMove> getRookPossibleMoves (ArrayList<ChessPosition> legalPositions, ChessPosition startingPostion) {
-        ArrayList<ChessMove> legalMoves = new ArrayList<ChessMove>();
-
-        for (ChessPosition legalPosition : legalPositions) {
-            legalMoves.add(new ChessMove(startingPostion, legalPosition, null));
-        }
-
-        return legalMoves;
     }
 
     private enum direction {
@@ -461,7 +412,7 @@ public class ChessPiece {
 
     }
 
-    private ArrayList<ChessPosition> getOneForward(ChessBoard board, ChessPosition position) {
+    private ArrayList<ChessPosition> getOneForwardPosition(ChessBoard board, ChessPosition position) {
         ArrayList<ChessPosition> targetPositions = new ArrayList<ChessPosition>();
         ChessPosition targetPosition;
 
@@ -505,15 +456,6 @@ public class ChessPiece {
         return endingPositions;
     }
 
-
-    private ArrayList<ChessMove> getPromoMoves (ChessMove move){
-        ChessPiece.PieceType[] promoPieces = {PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP};
-        ArrayList<ChessMove> promoMoves = new ArrayList<>();
-        for (PieceType pieceType : promoPieces) {
-            promoMoves.add(new ChessMove(move.startPosition, move.endPosition, pieceType));
-        }
-        return promoMoves;
-    }
 
     private boolean isEligibleForPromo(ChessPosition position) {
         if (this.teamColor == ChessGame.TeamColor.WHITE && position.getRow() == 8) {
