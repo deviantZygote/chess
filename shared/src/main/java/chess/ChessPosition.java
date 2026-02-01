@@ -13,9 +13,31 @@ public class ChessPosition {
     private int row;
     private int col;
 
+    @Override
+    public String toString() {
+        return "ChessPosition{" +
+                "row=" + row +
+                ", col=" + col +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPosition position = (ChessPosition) o;
+        return getRow() == position.getRow() && col == position.col;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getRow(), col);
+    }
+
     public ChessPosition(int row, int col) {
-        this.setRow(row);
-        this.setCol(col);
+        setRow(row);
+        setCol(col);
     }
 
     /**
@@ -26,41 +48,20 @@ public class ChessPosition {
         return this.row;
     }
 
+    public void setRow(int row) {
+        this.row = row;
+    }
+
     /**
      * @return which column this position is in
      * 1 codes for the left row
      */
     public int getColumn() {
+
         return this.col;
     }
 
-    private void setRow(int row) {
-        this.row = row;
-    }
-
-    private void setCol(int col) {
+    public void setCol(int col) {
         this.col = col;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessPosition that = (ChessPosition) o;
-        return getRow() == that.getRow() && col == that.col;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getRow(), col);
-    }
-
-    @Override
-    public String toString() {
-        return "ChessPosition{" +
-                "row=" + row +
-                ", col=" + col +
-                '}';
     }
 }

@@ -10,57 +10,21 @@ import java.util.Objects;
  */
 public class ChessMove {
 
-    ChessPosition startPosition;
-    ChessPosition endPosition;
-    ChessPiece.PieceType promotionPiece;
+    private ChessPosition startPosition;
+    private ChessPosition endPosition;
+    private  ChessPiece.PieceType promotionPiece;
 
-    public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
-                     ChessPiece.PieceType promotionPiece) {
-        this.setStartPosition(startPosition);
-        this.setEndPosition(endPosition);
-        this.setPromotionPiece(promotionPiece);
-    }
-
-    /**
-     * @return ChessPosition of starting location
-     */
-    public ChessPosition getStartPosition() {
-        return this.startPosition;
-    }
-
-    private void setStartPosition(ChessPosition position) {
-        this.startPosition = position;
-    }
-
-    /**
-     * @return ChessPosition of ending location
-     */
-    public ChessPosition getEndPosition() {
-        return this.endPosition;
-    }
-
-    private void setEndPosition(ChessPosition position) {
-        this.endPosition = position;
-    }
-    /**
-     * Gets the type of piece to promote a pawn to if pawn promotion is part of this
-     * chess move
-     *
-     * @return Type of piece to promote a pawn to, or null if no promotion
-     */
-    public ChessPiece.PieceType getPromotionPiece() {
-        return promotionPiece;
-    }
-
-    private void setPromotionPiece(ChessPiece.PieceType type) {
-        this.promotionPiece = type;
+    @Override
+    public String toString() {
+        return "ChessMove{" +
+                "startPosition=" + startPosition +
+                ", endPosition=" + endPosition +
+                ", promotionPiece=" + promotionPiece +
+                '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
@@ -73,13 +37,47 @@ public class ChessMove {
         return Objects.hash(getStartPosition(), getEndPosition(), getPromotionPiece());
     }
 
-    @Override
-    public String toString() {
-        return "ChessMove{" +
-                "startPosition=" + startPosition +
-                ", endPosition=" + endPosition +
-                ", promotionPiece=" + promotionPiece +
-                '}';
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
+                     ChessPiece.PieceType promotionPiece) {
+        setStartPosition(startPosition);
+        setEndPosition(endPosition);
+        setPromotionPiece(promotionPiece);
+    }
+
+    /**
+     * @return ChessPosition of starting location
+     */
+    public ChessPosition getStartPosition() {
+        return this.startPosition;
+    }
+
+    public void setStartPosition(ChessPosition startPosition) {
+        this.startPosition = startPosition;
+    }
+
+    /**
+     * @return ChessPosition of ending location
+     */
+    public ChessPosition getEndPosition() {
+        return this.endPosition;
+    }
+
+    public void setEndPosition(ChessPosition endPosition) {
+        this.endPosition = endPosition;
+    }
+
+    /**
+     * Gets the type of piece to promote a pawn to if pawn promotion is part of this
+     * chess move
+     *
+     * @return Type of piece to promote a pawn to, or null if no promotion
+     */
+    public ChessPiece.PieceType getPromotionPiece() {
+
+        return this.promotionPiece;
+    }
+
+    public void setPromotionPiece(ChessPiece.PieceType promotionPiece) {
+        this.promotionPiece = promotionPiece;
     }
 }
-
