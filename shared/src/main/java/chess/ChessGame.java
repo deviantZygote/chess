@@ -93,7 +93,11 @@ public class ChessGame {
 
         if (putsPlayerInCheck(pieceMove)) {
             return false;
-        } else {
+        } else if ( pieceColor == this.board.getPiece(pieceMove.getEndPosition()).getTeamColor()) {
+            return false;
+        }  else if ( pieceColor != getTeamTurn()) {
+            return false;
+        }else {
             return true;
         }
     }
@@ -131,6 +135,10 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         PositionAndPiece startPieceAndPosition = new PositionAndPiece(move.getStartPosition(), this.getBoard().getPiece(move.getStartPosition()));
+        if (startPieceAndPosition.piece() == null) {
+            throw new InvalidMoveException("No piece on start position" + move);
+        }
+
 
         if (validateMove(move, startPieceAndPosition.piece())) {
             // make the move
