@@ -90,14 +90,20 @@ public class ChessGame {
     private boolean validateMove (ChessMove pieceMove, ChessPiece piece) {
         ChessPiece.PieceType pieceType = piece.getPieceType();
         ChessGame.TeamColor pieceColor = piece.getTeamColor();
+        ChessPiece targetPiece = this.board.getPiece(pieceMove.getEndPosition());
+        TeamColor targetPieceColor = null;
+
+        if (targetPiece != null) {
+            targetPieceColor = targetPiece.getTeamColor();
+        }
 
         if (putsPlayerInCheck(pieceMove)) {
             return false;
-        } else if ( pieceColor == this.board.getPiece(pieceMove.getEndPosition()).getTeamColor()) {
+        } else if (targetPieceColor != null && pieceColor == targetPieceColor) {
             return false;
         }  else if ( pieceColor != getTeamTurn()) {
             return false;
-        }else {
+        } else {
             return true;
         }
     }
