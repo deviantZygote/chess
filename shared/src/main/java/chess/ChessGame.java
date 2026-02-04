@@ -149,6 +149,14 @@ public class ChessGame {
         if (validateMove(move, startPieceAndPosition.piece())) {
             // make the move
             this.getBoard().addPiece(move.getEndPosition(), startPieceAndPosition.piece());
+            this.getBoard().addPiece(move.getStartPosition(), null);
+
+            if (startPieceAndPosition.piece.getTeamColor() == TeamColor.WHITE) {
+                setTeamTurn(TeamColor.BLACK);
+            } else {
+                setTeamTurn(TeamColor.WHITE);
+            }
+
         } else {
             throw new InvalidMoveException("Illegal move" + move);
         }
