@@ -265,10 +265,11 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        ArrayList<PositionAndPiece> friendlyKing = new ArrayList<>();
-        friendlyKing.add(getFriendlyKing(teamColor));
+        ArrayList<PositionAndPiece> friendlyPositionsAndPieces = new ArrayList<>();
+        friendlyPositionsAndPieces.addAll(getFriendlyTeamPiecesAndPositions(teamColor));
 
-        if (isInCheck(teamColor) && !legalMovesExist(friendlyKing)) {
+
+        if (isInCheck(teamColor) && !legalMovesExist(friendlyPositionsAndPieces)) {
             return true;
         } else {
             return false;
