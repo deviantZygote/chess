@@ -91,7 +91,6 @@ public class ChessGame {
     private boolean validateMove (ChessMove pieceMove, ChessPiece piece) {
         ArrayList<ChessMove> pieceMoves = new ArrayList<>();
         pieceMoves = (ArrayList<ChessMove>) piece.pieceMoves(this.getBoard(), pieceMove.getStartPosition());
-        ChessPiece.PieceType pieceType = piece.getPieceType();
         ChessGame.TeamColor pieceColor = piece.getTeamColor();
         ChessPiece targetPiece = this.board.getPiece(pieceMove.getEndPosition());
         TeamColor targetPieceColor = null;
@@ -108,8 +107,6 @@ public class ChessGame {
         if (putsPlayerInCheck(pieceMove)) {
             return false;
         } else if (targetPieceColor != null && pieceColor == targetPieceColor) {
-            return false;
-        }  else if ( pieceColor != getTeamTurn()) {
             return false;
         } else {
             return true;
@@ -151,6 +148,8 @@ public class ChessGame {
         PositionAndPiece startPieceAndPosition = new PositionAndPiece(move.getStartPosition(), this.getBoard().getPiece(move.getStartPosition()));
         if (startPieceAndPosition.piece() == null) {
             throw new InvalidMoveException("No piece on start position" + move);
+        } else if (startPieceAndPosition.piece().getTeamColor() != getTeamTurn()) {
+            throw new InvalidMoveException("It is not this team's turn" + move);
         }
 
 
