@@ -1,6 +1,7 @@
 package chess;
 
 import javax.swing.text.Position;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
@@ -88,10 +89,17 @@ public class ChessGame {
     }
 
     private boolean validateMove (ChessMove pieceMove, ChessPiece piece) {
+        ArrayList<ChessMove> pieceMoves = new ArrayList<>();
+        pieceMoves = (ArrayList<ChessMove>) piece.pieceMoves(this.getBoard(), pieceMove.getStartPosition());
         ChessPiece.PieceType pieceType = piece.getPieceType();
         ChessGame.TeamColor pieceColor = piece.getTeamColor();
         ChessPiece targetPiece = this.board.getPiece(pieceMove.getEndPosition());
         TeamColor targetPieceColor = null;
+
+        if (!pieceMoves.contains(pieceMove)) {
+            return false;
+        }
+
 
         if (targetPiece != null) {
             targetPieceColor = targetPiece.getTeamColor();
@@ -148,8 +156,35 @@ public class ChessGame {
 
         if (validateMove(move, startPieceAndPosition.piece())) {
             // make the move
-            this.getBoard().addPiece(move.getEndPosition(), startPieceAndPosition.piece());
-            this.getBoard().addPiece(move.getStartPosition(), null);
+
+            if (move.getPromotionPiece() != null) {
+                ChessPiece promoPiece;
+
+                switch (move.getPromotionPiece()) {
+                    case QUEEN:
+                        promoPiece = new ChessPiece(startPieceAndPosition.piece().getTeamColor(), ChessPiece.PieceType.QUEEN);
+                        this.getBoard().addPiece(move.getEndPosition(), promoPiece);
+                        break;
+                    case ROOK:
+                        promoPiece = new ChessPiece(startPieceAndPosition.piece().getTeamColor(), ChessPiece.PieceType.ROOK);
+                        this.getBoard().addPiece(move.getEndPosition(), promoPiece);
+                        break;
+                    case KNIGHT:
+                        promoPiece = new ChessPiece(startPieceAndPosition.piece().getTeamColor(), ChessPiece.PieceType.KNIGHT);
+                        this.getBoard().addPiece(move.getEndPosition(), promoPiece);
+                        break;
+                    case BISHOP:
+                        promoPiece = new ChessPiece(startPieceAndPosition.piece().getTeamColor(), ChessPiece.PieceType.BISHOP);
+                        this.getBoard().addPiece(move.getEndPosition(), promoPiece);
+                        break;
+                }
+                this.getBoard().addPiece(move.getStartPosition(), null);
+            } else {
+                this.getBoard().addPiece(move.getEndPosition(), startPieceAndPosition.piece());
+                this.getBoard().addPiece(move.getStartPosition(), null);
+            }
+
+
 
             if (startPieceAndPosition.piece.getTeamColor() == TeamColor.WHITE) {
                 setTeamTurn(TeamColor.BLACK);
