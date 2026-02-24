@@ -1,6 +1,8 @@
 package server;
 
 import io.javalin.*;
+import dataaccess.*;
+import service.*;
 
 public class Server {
 
@@ -9,11 +11,12 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
-        // Register your endpoints and exception handlers here.
+        UserDAO userDAO = new UserDAO();
+        AuthDAO authDAO = new AuthDAO();
+        RegisterService registerService = new RegisterService(userDAO, authDAO);
 
-        RegisterHandler registerHandler = new RegisterHandler();
+        RegisterHandler registerHandler = new RegisterHandler(registerService);
         javalin.post("/user", registerHandler::handle);
-
     }
 
     public int run(int desiredPort) {
