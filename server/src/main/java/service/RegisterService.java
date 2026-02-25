@@ -1,7 +1,7 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.UserDAO;
+import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import exceptions.AlreadyTakenException;
 import exceptions.BadRequestException;
 import model.AuthData;
@@ -13,12 +13,10 @@ import java.util.UUID;
 
 public class RegisterService {
 
-    private final UserDAO userDAO;
-    private final AuthDAO authDAO;
+    private final DataAccess dataAccess;
 
-    public RegisterService(UserDAO userDAO, AuthDAO authDAO) {
-        this.userDAO = userDAO;
-        this.authDAO = authDAO;
+    public RegisterService(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
     }
 
     public RegisterResponse register(RegisterRequest req) {
@@ -26,16 +24,19 @@ public class RegisterService {
             throw new BadRequestException("Error: bad request");
         }
 
-        if (userDAO.exists(req.username)) {
-            throw new AlreadyTakenException("Error: already taken");
+        try {
+            if (dataAccess.getUser(req.username) != null) {
+                throw new AlreadyTakenException("Error: already taken");
+            }
+            dataAccess.createUser (new UserData(req.username, req.password, req.email));
+
+            String token = UUID.randomUUID().toString();
+            dataAccess.createAuth(new AuthData(token, req.username));
+
+            return new RegisterResponse(req.username, token);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         }
-
-        userDAO.create(new UserData(req.username, req.password, req.email));
-
-        String token = UUID.randomUUID().toString();
-        authDAO.create(new AuthData(token, req.username));
-
-        return new RegisterResponse(req.username, token);
     }
 
     private boolean isBlank(String s) {

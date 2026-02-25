@@ -11,9 +11,8 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
-        UserDAO userDAO = new UserDAO();
-        AuthDAO authDAO = new AuthDAO();
-        RegisterService registerService = new RegisterService(userDAO, authDAO);
+        DataAccess dataAccess = new MemoryDataAccess();
+        RegisterService registerService = new RegisterService(dataAccess);
 
         RegisterHandler registerHandler = new RegisterHandler(registerService);
         javalin.post("/user", registerHandler::handle);
