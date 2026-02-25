@@ -11,6 +11,6 @@ public class UserDAO {
     }
 
     public void create(UserData user) {
-        usersByUsername.put(user.username, user);
+        usersByUsername.put(user.username(), user);
     }
 }
