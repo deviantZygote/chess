@@ -2,6 +2,8 @@ package service;
 
 import dataaccess.AuthDAO;
 import dataaccess.UserDAO;
+import exceptions.AlreadyTakenException;
+import exceptions.BadRequestException;
 import model.AuthData;
 import model.RegisterRequest;
 import model.RegisterResponse;
@@ -20,8 +22,12 @@ public class RegisterService {
     }
 
     public RegisterResponse register(RegisterRequest req) {
+        if (isBlank(req.username) || isBlank(req.password) || isBlank(req.email)) {
+            throw new BadRequestException("Error: bad request");
+        }
+
         if (userDAO.exists(req.username)) {
-            throw new RuntimeException("already taken");
+            throw new AlreadyTakenException("Error: already taken");
         }
 
         userDAO.create(new UserData(req.username, req.password, req.email));
@@ -30,5 +36,9 @@ public class RegisterService {
         authDAO.create(new AuthData(token, req.username));
 
         return new RegisterResponse(req.username, token);
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }
