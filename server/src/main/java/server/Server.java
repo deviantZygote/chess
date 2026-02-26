@@ -20,6 +20,10 @@ public class Server {
         ClearService clearService = new ClearService(dataAccess);
         ClearHandler clearHandler = new ClearHandler(clearService);
         javalin.delete("/db", clearHandler::handle);
+
+        LoginService loginService = new LoginService(dataAccess);
+        LoginHandler loginHandler = new LoginHandler(loginService);
+        javalin.post("/session", loginHandler::handle);
     }
 
     public int run(int desiredPort) {

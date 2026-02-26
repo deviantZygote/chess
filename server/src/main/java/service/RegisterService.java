@@ -9,6 +9,7 @@ import model.RegisterRequest;
 import model.RegisterResponse;
 import model.UserData;
 import java.util.UUID;
+import static helpers.HelperFunctions.isBlank;
 
 public class RegisterService {
 
@@ -36,9 +37,5 @@ public class RegisterService {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
     }
 }
