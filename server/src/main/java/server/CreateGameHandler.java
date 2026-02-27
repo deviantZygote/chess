@@ -3,24 +3,30 @@ package server;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
 import model.*;
-import service.LoginService;
+import service.CreateGameService;
 import exceptions.*;
+import static helpers.HelperFunctions.isBlank;
 
-public class LoginHandler {
+public class CreateGameHandler {
     private final Gson gson = new Gson();
-    private final LoginService loginService;
+    private final CreateGameService createGameService;
 
-    public LoginHandler(LoginService loginService) {
-        this.loginService = loginService;
+    public CreateGameHandler(CreateGameService createGameService) {
+        this.createGameService = createGameService;
     }
 
     public void handle(Context ctx) {
         try {
-            LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
-            if (req == null) {
+            String authToken = ctx.header("authorization");
+            if (isBlank(authToken)) {
+                throw new UnauthorizedException("Error: unauthorized");
+            }
+
+            CreateGameRequest req = gson.fromJson(ctx.body(), CreateGameRequest.class);
+            if (req == null || req.gameName == null) {
                 throw new BadRequestException("Error: bad request");
             }
-            LoginResponse res = loginService.login(req);
+            CreateGameResponse res = createGameService.createGame(authToken, req);
             ctx.status(200);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(res));
@@ -40,7 +46,5 @@ public class LoginHandler {
             ctx.result(gson.toJson(new ErrorResponse("Error: " + e.getMessage())));
         }
     }
-
-
 
 }

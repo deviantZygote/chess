@@ -24,6 +24,14 @@ public class Server {
         LoginService loginService = new LoginService(dataAccess);
         LoginHandler loginHandler = new LoginHandler(loginService);
         javalin.post("/session", loginHandler::handle);
+
+        LogoutService logoutService = new LogoutService(dataAccess);
+        LogoutHandler logoutHandler = new LogoutHandler(logoutService);
+        javalin.delete("/session", logoutHandler::handle);
+
+        CreateGameService createGameService = new CreateGameService(dataAccess);
+        CreateGameHandler createGameHandler = new CreateGameHandler(createGameService);
+        javalin.post("/game", createGameHandler::handle);
     }
 
     public int run(int desiredPort) {
