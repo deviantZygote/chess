@@ -14,7 +14,6 @@ public class GameData {
         setGameName(gameName);
         setWhiteUsername(whiteUsername);
         setBlackUsername(blackUsername);
-        setChessGame(chessGame);
     }
 
     public int getGameID() {
@@ -53,7 +52,4 @@ public class GameData {
         return chessGame;
     }
 
-    public void setChessGame(ChessGame chessGame) {
-        this.chessGame = chessGame;
-    }
 }
