@@ -71,9 +71,6 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
         GameData gameData = chessGamesByID.get(gameID);
-        if (gameData == null) {
-           throw new DataAccessException("Error: Game doesn't exist");
-       }
         return gameData;
     }
 

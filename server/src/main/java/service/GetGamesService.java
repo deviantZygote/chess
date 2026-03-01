@@ -4,11 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import exceptions.*;
 import model.*;
-
 import java.util.ArrayList;
-import java.util.Collection;
-
-import static helpers.HelperFunctions.isBlank;
 import static helpers.HelperFunctions.validateLogin;
 
 public class GetGamesService {

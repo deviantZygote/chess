@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import model.*;
 import service.GetGamesService;
 import exceptions.*;
-
 import static helpers.HelperFunctions.isBlank;
 
 
