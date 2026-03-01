@@ -113,8 +113,13 @@ public class ChessGame {
 
     private boolean putsPlayerInCheck (ChessMove pieceMove) {
         // store piece at end position
-        PositionAndPiece targetPositionAndPiece = new PositionAndPiece(pieceMove.getEndPosition(), this.getBoard().getPiece(pieceMove.getEndPosition()));
-        PositionAndPiece startPositionAndPiece = new PositionAndPiece(pieceMove.getStartPosition(), this.getBoard().getPiece(pieceMove.getStartPosition()));
+        ChessPosition moveEndPos = pieceMove.getEndPosition();
+        ChessPiece boardEndPiece = this.getBoard().getPiece(pieceMove.getEndPosition());
+        PositionAndPiece targetPositionAndPiece = new PositionAndPiece(moveEndPos, boardEndPiece);
+
+        ChessPosition moveStartPos = pieceMove.getStartPosition();
+        ChessPiece boardStartPiece = this.getBoard().getPiece(pieceMove.getStartPosition());
+        PositionAndPiece startPositionAndPiece = new PositionAndPiece(moveStartPos, boardStartPiece);
         // make the move
         this.getBoard().addPiece(targetPositionAndPiece.pos(), startPositionAndPiece.piece());
         this.getBoard().addPiece(startPositionAndPiece.pos(), null);

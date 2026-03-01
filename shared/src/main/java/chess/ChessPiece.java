@@ -221,7 +221,13 @@ public class ChessPiece {
 
     private ArrayList<ChessPosition> getBishopEndPositions(ChessBoard board, ChessPosition startPos) {
         ArrayList<ChessPosition> bishopEndPositions = new ArrayList<>();
-        Directions[] directions = new Directions[] {Directions.upLeft, Directions.upRight, Directions.downLeft, Directions.downRight};
+        Directions[] directions =
+                new Directions[] {
+                        Directions.upLeft,
+                        Directions.upRight,
+                        Directions.downLeft,
+                        Directions.downRight
+        };
 
         for (Directions direction : directions) {
             bishopEndPositions.addAll(getBarEndPositions(board, direction, startPos));
@@ -232,7 +238,12 @@ public class ChessPiece {
 
     private ArrayList<ChessPosition> getRookEndPositions(ChessBoard board, ChessPosition startPos) {
         ArrayList<ChessPosition> rookEndPositions = new ArrayList<>();
-        Directions[] directions = new Directions[] {Directions.up, Directions.down, Directions.left, Directions.right};
+        Directions[] directions = new Directions[] {
+                Directions.up,
+                Directions.down,
+                Directions.left,
+                Directions.right
+        };
 
         for (Directions direction : directions) {
             rookEndPositions.addAll(getBarEndPositions(board, direction, startPos));

@@ -69,6 +69,15 @@ public class JoinGameServiceTest {
         joinGameService.joinGame(res.authToken, new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID));
         joinGameService.joinGame(res2.authToken, new JoinGameRequest(ChessGame.TeamColor.BLACK, createGameResponse.gameID));
 
-        assertThrows(AlreadyTakenException.class, () -> joinGameService.joinGame(res3.authToken, new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID)));
+        assertThrows(
+                AlreadyTakenException.class,
+                () -> joinGameService.joinGame(
+                        res3.authToken,
+                        new JoinGameRequest(
+                                ChessGame.TeamColor.WHITE,
+                                createGameResponse.gameID
+                        )
+                )
+        );
     }
 }

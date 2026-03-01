@@ -29,7 +29,11 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(getStartPosition(), chessMove.getStartPosition()) && Objects.equals(getEndPosition(), chessMove.getEndPosition()) && getPromotionPiece() == chessMove.getPromotionPiece();
+        boolean position = Objects.equals(getStartPosition(), chessMove.getStartPosition());
+        boolean positionInMove = Objects.equals(getEndPosition(), chessMove.getEndPosition());
+        ChessPiece.PieceType promoType = getPromotionPiece();
+        ChessPiece.PieceType movePromoType = chessMove.getPromotionPiece();
+        return position && positionInMove &&  promoType == movePromoType;
     }
 
     @Override
