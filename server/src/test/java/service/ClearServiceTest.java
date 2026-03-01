@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ClearServiceTest {
 
     @Test
-    public void clear_success() throws Exception {
+    public void clearSuccess() throws Exception {
         DataAccess data = new MemoryDataAccess();
         ClearService service = new ClearService(data);
 

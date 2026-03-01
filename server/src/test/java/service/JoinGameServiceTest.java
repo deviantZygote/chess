@@ -5,13 +5,12 @@ import dataaccess.*;
 import exceptions.*;
 import model.*;
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 public class JoinGameServiceTest {
     @Test
-    public void join_game_success() throws DataAccessException {
+    public void joinGameSuccess() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);
@@ -43,7 +42,7 @@ public class JoinGameServiceTest {
     }
 
     @Test
-    public void join_game_fail() throws DataAccessException {
+    public void joinGameFail() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);

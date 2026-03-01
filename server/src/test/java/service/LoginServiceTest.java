@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LoginServiceTest {
 
     @Test
-    public void login_success() throws DataAccessException {
+    public void loginSuccess() throws DataAccessException {
             DataAccess data = new MemoryDataAccess();
             LoginService service = new LoginService(data);
 
@@ -26,7 +26,7 @@ public class LoginServiceTest {
         }
 
     @Test
-    public void login_fail() throws DataAccessException {
+    public void loginFail() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         LoginService service = new LoginService(data);
 

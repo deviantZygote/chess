@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LogoutServiceTest {
 
     @Test
-    public void logout_success() throws DataAccessException {
+    public void logoutSuccess() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         LoginService loginService = new LoginService(data);
         data.createUser(new UserData("bob", "pass", "bob@gmail.com"));
@@ -27,7 +27,7 @@ public class LogoutServiceTest {
     }
 
     @Test
-    public void logout_invalidToken_throwsUnauthorized() {
+    public void logoutInvalidTokenThrowsUnauthorized() {
         DataAccess data = new MemoryDataAccess();
         LogoutService logoutService = new LogoutService(data);
 

@@ -203,10 +203,10 @@ public class ChessPiece {
         ArrayList<ChessPosition> kingEndPositions = new ArrayList<>();
         ChessPosition targetPosition;
 
-        directions[] directions = ChessPiece.directions.values();
+        Directions[] directions = Directions.values();
         int [] mods;
 
-        for (ChessPiece.directions direction : directions) {
+        for (Directions direction : directions) {
             mods = getMods(direction);
             targetPosition = new ChessPosition(startPos.getRow() + mods[0], startPos.getColumn() + mods[1]);
             if (board.isEmptyAndInbounds(targetPosition)) {
@@ -221,9 +221,9 @@ public class ChessPiece {
 
     private ArrayList<ChessPosition> getBishopEndPositions(ChessBoard board, ChessPosition startPos) {
         ArrayList<ChessPosition> bishopEndPositions = new ArrayList<>();
-        directions[] directions = new ChessPiece.directions [] {ChessPiece.directions.upLeft, ChessPiece.directions.upRight, ChessPiece.directions.downLeft, ChessPiece.directions.downRight};
+        Directions[] directions = new Directions[] {Directions.upLeft, Directions.upRight, Directions.downLeft, Directions.downRight};
 
-        for (ChessPiece.directions direction : directions) {
+        for (Directions direction : directions) {
             bishopEndPositions.addAll(getBarEndPositions(board, direction, startPos));
         }
 
@@ -232,9 +232,9 @@ public class ChessPiece {
 
     private ArrayList<ChessPosition> getRookEndPositions(ChessBoard board, ChessPosition startPos) {
         ArrayList<ChessPosition> rookEndPositions = new ArrayList<>();
-        directions[] directions = new ChessPiece.directions [] {ChessPiece.directions.up, ChessPiece.directions.down, ChessPiece.directions.left, ChessPiece.directions.right};
+        Directions[] directions = new Directions[] {Directions.up, Directions.down, Directions.left, Directions.right};
 
-        for (ChessPiece.directions direction : directions) {
+        for (Directions direction : directions) {
             rookEndPositions.addAll(getBarEndPositions(board, direction, startPos));
         }
 
@@ -269,16 +269,16 @@ public class ChessPiece {
 
     private ArrayList<ChessPosition> getQueenEndPositions(ChessBoard board, ChessPosition startPos) {
         ArrayList<ChessPosition> queenEndPositions = new ArrayList<>();
-        directions[] directions = ChessPiece.directions.values();
+        Directions[] directions = Directions.values();
 
-        for (ChessPiece.directions direction : directions) {
+        for (Directions direction : directions) {
             queenEndPositions.addAll(getBarEndPositions(board, direction, startPos));
         }
 
         return queenEndPositions;
     }
 
-    private ArrayList<ChessPosition> getBarEndPositions (ChessBoard board, directions direction, ChessPosition startPos) {
+    private ArrayList<ChessPosition> getBarEndPositions (ChessBoard board, Directions direction, ChessPosition startPos) {
         ArrayList<ChessPosition> barEndPositions = new ArrayList<>();
         int [] mods = getMods(direction);
 
@@ -313,7 +313,7 @@ public class ChessPiece {
         return barEndPositions;
     }
 
-    private int [] getMods (directions direction) {
+    private int [] getMods (Directions direction) {
         int [] mods = new int[2];
 
         int row = 0;
@@ -357,7 +357,7 @@ public class ChessPiece {
         return mods;
     }
 
-    public enum directions {
+    public enum Directions {
         up,
         down,
         left,

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GetGamesServiceTest {
     @Test
-    public void list_games_success() throws DataAccessException {
+    public void listGamesSuccess() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);
@@ -35,7 +35,7 @@ public class GetGamesServiceTest {
     }
 
     @Test
-    public void list_games_fail() throws DataAccessException {
+    public void listGamesFail() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);

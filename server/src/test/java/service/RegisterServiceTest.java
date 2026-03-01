@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RegisterServiceTest {
 
     @Test
-    public void register_success() {
+    public void registerSuccess() {
         DataAccess data = new MemoryDataAccess();
         RegisterService service = new RegisterService(data);
 
@@ -23,7 +23,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void register_duplicateUser_throws() {
+    public void registerDuplicateUser_throws() {
         DataAccess data = new MemoryDataAccess();
         RegisterService service = new RegisterService(data);
 
@@ -35,7 +35,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void register_missingField_throwsBadRequest() {
+    public void registerMissingFieldThrowsBadRequest() {
         DataAccess data = new MemoryDataAccess();
         RegisterService service = new RegisterService(data);
 

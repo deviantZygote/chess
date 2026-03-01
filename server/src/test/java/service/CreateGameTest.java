@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CreateGameTest {
 
     @Test
-    public void create_success() throws DataAccessException {
+    public void createSuccess() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);
@@ -34,7 +34,7 @@ public class CreateGameTest {
     }
 
     @Test
-    public void create_failure() throws DataAccessException {
+    public void createFailure() throws DataAccessException {
         DataAccess data = new MemoryDataAccess();
         CreateGameService createGameService = new CreateGameService(data);
         LoginService loginService = new LoginService(data);
