@@ -6,6 +6,8 @@ import model.*;
 import service.RegisterService;
 import exceptions.*;
 
+import static helpers.HelperFunctions.catchHandlerExceptions;
+
 public class RegisterHandler {
     private final Gson gson = new Gson();
     private final RegisterService registerService;
@@ -25,20 +27,8 @@ public class RegisterHandler {
             ctx.status(200);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(res));
-        } catch (BadRequestException e) {
-            ctx.status(400);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson( new ErrorResponse( e.getMessage() )));
-        } catch (com.google.gson.JsonSyntaxException e) {
-            ctx.status(400).contentType("application/json").result(gson.toJson(new ErrorResponse("Error: bad request")));
-        } catch (AlreadyTakenException e) {
-            ctx.status(403);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson(new ErrorResponse(e.getMessage())));
-        } catch (Exception e) {
-            ctx.status(500);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson(new ErrorResponse("Error: " + e.getMessage())));
+        }catch (Exception e) {
+            catchHandlerExceptions(e, ctx, gson);
         }
 
 

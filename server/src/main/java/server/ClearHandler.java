@@ -6,6 +6,8 @@ import model.*;
 import service.ClearService;
 import exceptions.*;
 
+import static helpers.HelperFunctions.catchHandlerExceptions;
+
 public class ClearHandler {
     private final Gson gson = new Gson();
     private final ClearService clearService;
@@ -22,9 +24,7 @@ public class ClearHandler {
             ctx.contentType("application/json");
             ctx.result("{}");
                 } catch (Exception e) {
-            ctx.status(500);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson(new ErrorResponse("Error: " + e.getMessage())));
+            catchHandlerExceptions(e, ctx, gson);
         }
     }
 }

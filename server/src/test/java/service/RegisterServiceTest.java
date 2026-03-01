@@ -23,7 +23,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void registerDuplicateUser_throws() {
+    public void registerDuplicateUserThrows() {
         DataAccess data = new MemoryDataAccess();
         RegisterService service = new RegisterService(data);
 

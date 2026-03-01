@@ -6,6 +6,8 @@ import model.*;
 import service.LoginService;
 import exceptions.*;
 
+import static helpers.HelperFunctions.catchHandlerExceptions;
+
 public class LoginHandler {
     private final Gson gson = new Gson();
     private final LoginService loginService;
@@ -24,20 +26,8 @@ public class LoginHandler {
             ctx.status(200);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(res));
-        } catch (BadRequestException e) {
-            ctx.status(400);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson( new ErrorResponse( e.getMessage() )));
-        } catch (com.google.gson.JsonSyntaxException e) {
-            ctx.status(400).contentType("application/json").result(gson.toJson(new ErrorResponse("Error: bad request")));
-        } catch (UnauthorizedException e) {
-            ctx.status(401);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson( new ErrorResponse( e.getMessage() )));
         } catch (Exception e) {
-            ctx.status(500);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson(new ErrorResponse("Error: " + e.getMessage())));
+            catchHandlerExceptions(e, ctx, gson);
         }
     }
 

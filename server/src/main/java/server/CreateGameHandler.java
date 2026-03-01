@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import model.*;
 import service.CreateGameService;
 import exceptions.*;
+
+import static helpers.HelperFunctions.catchHandlerExceptions;
 import static helpers.HelperFunctions.isBlank;
 
 public class CreateGameHandler {
@@ -30,20 +32,8 @@ public class CreateGameHandler {
             ctx.status(200);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(res));
-        } catch (BadRequestException e) {
-            ctx.status(400);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson( new ErrorResponse( e.getMessage() )));
-        } catch (com.google.gson.JsonSyntaxException e) {
-            ctx.status(400).contentType("application/json").result(gson.toJson(new ErrorResponse("Error: bad request")));
-        } catch (UnauthorizedException e) {
-            ctx.status(401);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson( new ErrorResponse( e.getMessage() )));
         } catch (Exception e) {
-            ctx.status(500);
-            ctx.contentType("application/json");
-            ctx.result(gson.toJson(new ErrorResponse("Error: " + e.getMessage())));
+            catchHandlerExceptions(e, ctx, gson);
         }
     }
 
