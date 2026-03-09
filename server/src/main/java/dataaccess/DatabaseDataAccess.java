@@ -59,6 +59,7 @@ public class DatabaseDataAccess implements DataAccess {
     public void clear() throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             clearUserTable(conn);
+            clearAuthTable(conn);
         } catch (SQLException e) {
             throw new DataAccessException("Error: Failed to Clear DB");
         }
@@ -75,6 +76,18 @@ public class DatabaseDataAccess implements DataAccess {
             preparedStatement.executeUpdate();
         }
     }
+
+    private void clearAuthTable(Connection conn) throws SQLException {
+
+        String statement = """
+        DELETE FROM auth;
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
@@ -129,13 +142,50 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
-        // store auth data
+        String sql = """
+        INSERT INTO authData (authToken, username)
+        VALUES (?, ?)
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, auth.authToken());
+            stmt.setString(2, auth.username());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: SQL Auth Insert Fail");
+        }
     }
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        // retrive authToken from db
-        return new AuthData("fakeAuthToken", "fakeUsername");
+        String sql = """
+        SELECT authToken, username
+        FROM auth
+        WHERE authToken = ?
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, authToken);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new AuthData(
+                        rs.getString("authToken"),
+                        rs.getString("username")
+                );
+            }
+
+            return null;
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to retrieve authData", e);
+        }
     }
 
     @Override
