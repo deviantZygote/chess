@@ -77,6 +77,7 @@ public class DatabaseDataAccess implements DataAccess {
         try (Connection conn = DatabaseManager.getConnection()) {
             clearUserTable(conn);
             clearAuthTable(conn);
+            clearGameTable(conn);
         } catch (SQLException e) {
             throw new DataAccessException("Error: Failed to Clear DB");
         }
@@ -97,6 +98,16 @@ public class DatabaseDataAccess implements DataAccess {
     private void clearAuthTable(Connection conn) throws SQLException {
         String statement = """
         DELETE FROM auth;
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void clearGameTable(Connection conn) throws SQLException {
+        String statement = """
+        DELETE FROM game;
     """;
 
         try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
