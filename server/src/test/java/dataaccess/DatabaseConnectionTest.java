@@ -47,6 +47,24 @@ public class DatabaseConnectionTest {
     }
 
     @Test
+    public void authTableCreateTest() throws Exception {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("""
+                             SELECT table_name
+                             FROM information_schema.tables
+                             WHERE table_schema = DATABASE()
+                             AND table_name = ?
+                     """
+             )) {
+
+            stmt.setString(1, "auth");
+            ResultSet rs = stmt.executeQuery();
+            assertTrue(rs.next());
+            assertEquals("auth", rs.getString("table_name"));
+        }
+    }
+
+    @Test
     public void getUserTest() throws Exception {
         DatabaseDataAccess db = new DatabaseDataAccess();
         UserData expectedUser = new UserData("testUser", "testPassword", "test@email.com");

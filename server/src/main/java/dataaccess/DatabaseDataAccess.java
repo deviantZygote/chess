@@ -22,6 +22,7 @@ public class DatabaseDataAccess implements DataAccess {
         DatabaseManager.createDatabase();
         try (Connection conn = DatabaseManager.getConnection()) {
             createUserTable(conn);
+            createAuthTable(conn);
         } catch (SQLException e) {
             throw new DataAccessException("Error: SQL error");
         }
@@ -41,9 +42,21 @@ public class DatabaseDataAccess implements DataAccess {
         }
     }
 
+    private void createAuthTable(Connection conn) throws SQLException {
+        String statement = """
+        CREATE TABLE IF NOT EXISTS auth (
+            authToken VARCHAR(200) PRIMARY KEY,
+            username VARCHAR(100) NOT NULL
+        )
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
     @Override
     public void clear() throws DataAccessException {
-        // clear the db
         try (Connection conn = DatabaseManager.getConnection()) {
             clearUserTable(conn);
         } catch (SQLException e) {
@@ -65,7 +78,6 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
-        // add user to db
         String sql = """
         INSERT INTO users (username, password, email)
         VALUES (?, ?, ?)
