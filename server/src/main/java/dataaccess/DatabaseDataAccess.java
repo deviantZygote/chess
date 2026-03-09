@@ -5,10 +5,42 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class DatabaseDataAccess implements DataAccess {
+
+    public DatabaseDataAccess () throws DataAccessException {
+        configureDatabase();
+    }
+
+    private void configureDatabase () throws DataAccessException {
+        DatabaseManager.createDatabase();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            createUserTable(conn);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: SQL error");
+        }
+    }
+
+    private void createUserTable(Connection conn) throws SQLException {
+
+        String statement = """
+        CREATE TABLE IF NOT EXISTS users (
+            username VARCHAR(50) PRIMARY KEY,
+            password VARCHAR(100) NOT NULL,
+            email VARCHAR(100) NOT NULL
+        )
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
     @Override
     public void clear() throws DataAccessException {
         // clear the db
