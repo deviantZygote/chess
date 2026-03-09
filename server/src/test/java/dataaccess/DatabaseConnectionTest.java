@@ -1,5 +1,6 @@
 package dataaccess;
 
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,16 @@ public class DatabaseConnectionTest {
         UserData returnedUser = db.getUser(expectedUser.username());
 
         assertEquals(expectedUser, returnedUser);
+    }
+
+    @Test
+    public void createAuthTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        AuthData expectedAuthData = new AuthData("112345678911234567891123456789", "username");
+        db.createAuth(expectedAuthData);
+        AuthData returnedAuthData = db.getAuth(expectedAuthData.authToken());
+
+        assertEquals(expectedAuthData.username(), returnedAuthData.username());
     }
 
 

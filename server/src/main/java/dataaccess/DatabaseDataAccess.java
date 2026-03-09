@@ -143,7 +143,7 @@ public class DatabaseDataAccess implements DataAccess {
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
         String sql = """
-        INSERT INTO authData (authToken, username)
+        INSERT INTO auth (authToken, username)
         VALUES (?, ?)
     """;
 
