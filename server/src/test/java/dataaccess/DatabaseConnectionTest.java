@@ -1,5 +1,7 @@
 package dataaccess;
 
+import model.UserData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,10 +11,16 @@ import java.sql.SQLException;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseConnectionTest {
-    @Test
-    public void testConnection() throws DataAccessException {
-        DatabaseManager.createDatabase();
 
+    @BeforeEach
+    public void setup() throws Exception {
+        DatabaseManager.createDatabase();
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        db.clear();
+    }
+
+    @Test
+    public void dbConnectTest() throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             assertNotNull(conn);
         } catch (SQLException e) {
@@ -21,10 +29,7 @@ public class DatabaseConnectionTest {
     }
 
     @Test
-    public void userTableCreated() throws Exception {
-        DatabaseManager.createDatabase();
-        DatabaseDataAccess db = new DatabaseDataAccess();
-
+    public void userTableCreateTest() throws Exception {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement("""
                              SELECT table_name
@@ -41,6 +46,15 @@ public class DatabaseConnectionTest {
         }
     }
 
+    @Test
+    public void getUserTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        UserData expectedUser = new UserData("testUser", "testPassword", "test@email.com");
+        db.createUser(expectedUser);
+        UserData returnedUser = db.getUser(expectedUser.username());
+
+        assertEquals(expectedUser, returnedUser);
+    }
 
 
 }

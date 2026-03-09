@@ -7,6 +7,7 @@ import model.UserData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +28,6 @@ public class DatabaseDataAccess implements DataAccess {
     }
 
     private void createUserTable(Connection conn) throws SQLException {
-
         String statement = """
         CREATE TABLE IF NOT EXISTS users (
             username VARCHAR(50) PRIMARY KEY,
@@ -44,17 +44,75 @@ public class DatabaseDataAccess implements DataAccess {
     @Override
     public void clear() throws DataAccessException {
         // clear the db
+        try (Connection conn = DatabaseManager.getConnection()) {
+            clearUserTable(conn);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: Failed to Clear DB");
+        }
+
+    }
+
+    private void clearUserTable(Connection conn) throws SQLException {
+
+        String statement = """
+        DELETE FROM users;
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
         // add user to db
+        String sql = """
+        INSERT INTO users (username, password, email)
+        VALUES (?, ?, ?)
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.username());
+            stmt.setString(2, user.password());
+            stmt.setString(3, user.email());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: SQL User Insert Fail");
+        }
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        // query db for userData
-        return new UserData("dummyUser", "dummyPass", "bob@gmail.com");
+
+        String sql = """
+        SELECT username, password, email
+        FROM users
+        WHERE username = ?
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new UserData(
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("email")
+                );
+            }
+
+            return null;
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to retrieve user", e);
+        }
     }
 
     @Override
