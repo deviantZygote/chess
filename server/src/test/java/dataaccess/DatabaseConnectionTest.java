@@ -85,5 +85,16 @@ public class DatabaseConnectionTest {
         assertEquals(expectedAuthData.username(), returnedAuthData.username());
     }
 
+    @Test
+    public void deleteAuthTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        AuthData expectedAuthData = new AuthData("112345678911234567891123456789", "username");
+        db.createAuth(expectedAuthData);
+        AuthData returnedAuthData = db.getAuth(expectedAuthData.authToken());
+        assertNotNull(db.getAuth(expectedAuthData.authToken()));
+        db.deleteAuth(expectedAuthData.authToken());
+        assertNull(db.getAuth(expectedAuthData.authToken()) );
+    }
+
 
 }

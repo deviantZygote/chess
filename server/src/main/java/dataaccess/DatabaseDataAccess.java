@@ -78,7 +78,6 @@ public class DatabaseDataAccess implements DataAccess {
     }
 
     private void clearAuthTable(Connection conn) throws SQLException {
-
         String statement = """
         DELETE FROM auth;
     """;
@@ -190,7 +189,26 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-        // remove authToken from db
+        String sql = """
+        DELETE
+        FROM auth
+        WHERE authToken = ?
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, authToken);
+
+            int rows = stmt.executeUpdate();
+
+            if (rows == 0) {
+                throw new DataAccessException("Error: authToken not found");
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to retrieve authData", e);
+        }
+
     }
 
     @Override
