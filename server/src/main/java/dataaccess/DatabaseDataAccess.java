@@ -23,6 +23,7 @@ public class DatabaseDataAccess implements DataAccess {
         try (Connection conn = DatabaseManager.getConnection()) {
             createUserTable(conn);
             createAuthTable(conn);
+            createGameDataTable(conn);
         } catch (SQLException e) {
             throw new DataAccessException("Error: SQL error");
         }
@@ -47,6 +48,22 @@ public class DatabaseDataAccess implements DataAccess {
         CREATE TABLE IF NOT EXISTS auth (
             authToken VARCHAR(200) PRIMARY KEY,
             username VARCHAR(100) NOT NULL
+        )
+    """;
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void createGameDataTable(Connection conn) throws SQLException {
+        String statement = """
+        CREATE TABLE IF NOT EXISTS game (
+            gameID INT AUTO_INCREMENT PRIMARY KEY,
+            gameName VARCHAR(255) NOT NULL,
+            whiteUsername VARCHAR(100),
+            blackUsername VARCHAR(100),
+            game TEXT NOT NULL
         )
     """;
 
