@@ -337,8 +337,54 @@ public class DatabaseDataAccess implements DataAccess {
     }
 
     @Override
-    public void assignGamePlayer(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
-        // update player in db
+    public void assignGamePlayer(ChessGame.TeamColor teamColor,
+                                 int gameID,
+                                 String username) throws DataAccessException {
+
+        GameData targetGame = getGame(gameID);
+        if (targetGame == null) {
+            throw new DataAccessException("Error: game not found");
+        }
+
+        String sql;
+
+        if (teamColor == ChessGame.TeamColor.WHITE) {
+            if (targetGame.getWhiteUsername() != null ) {
+                throw new DataAccessException("Error: Position already taken!");
+            }
+            sql = """
+                UPDATE game
+                SET whiteUsername = ?
+                WHERE gameID = ?
+                """;
+        } else if (teamColor == ChessGame.TeamColor.BLACK) {
+            if (targetGame.getBlackUsername() != null ) {
+                throw new DataAccessException("Error: Position already taken!");
+            }
+            sql = """
+                UPDATE game
+                SET blackUsername = ?
+                WHERE gameID = ?
+                """;
+        } else {
+            throw new DataAccessException("Error: invalid team color");
+        }
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setInt(2, gameID);
+
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated == 0) {
+                throw new DataAccessException("Error: game not found");
+            }
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to assign player", e);
+        }
     }
 
 

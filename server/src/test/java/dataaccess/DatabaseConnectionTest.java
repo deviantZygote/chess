@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -166,6 +167,20 @@ public class DatabaseConnectionTest {
         assertTrue(names.contains(chessName1));
         assertTrue(names.contains(chessName2));
         assertTrue(names.contains(chessName3));
+    }
+
+    @Test
+    public void assignUserTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        String gameName = "aChessGame";
+        GameData expectedChessGame = db.createGame(gameName);
+        UserData expectedUser = new UserData("testUser", "testPassword", "test@email.com");
+
+        db.assignGamePlayer(ChessGame.TeamColor.WHITE, expectedChessGame.getGameID(), expectedUser.username());
+
+        GameData returnedChessGame = db.getGame(expectedChessGame.getGameID());
+
+        assertEquals(expectedUser.username(), returnedChessGame.getWhiteUsername());
     }
 
 
