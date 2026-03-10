@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,6 +113,16 @@ public class DatabaseConnectionTest {
         db.deleteAuth(expectedAuthData.authToken());
         assertNull(db.getAuth(expectedAuthData.authToken()) );
     }
+
+    @Test
+    public void getGameTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        String gameName = "aChessGame";
+        GameData chessGame = db.createGame(gameName);
+
+        assertEquals(gameName, chessGame.getGameName());
+    }
+
 
 
 }

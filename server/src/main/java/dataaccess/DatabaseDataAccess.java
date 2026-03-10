@@ -1,14 +1,12 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -241,8 +239,30 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public GameData createGame(String gameName) throws DataAccessException {
-        // create a game in the db
-        return new GameData(1234, "fakeGame", "whiteUsername", "blackUsername", new ChessGame());
+        Gson gson = new Gson();
+        ChessGame chessGame = new ChessGame();
+        String gameJson = gson.toJson(chessGame);
+
+        String sql = """
+        INSERT INTO game (gameName, whiteUsername, blackUsername, game)
+        VALUES (?, NULL, NULL, ?)
+    """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, gameName);
+            stmt.setString(2, gameJson);
+
+            stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+            rs.next();
+            int gameID = rs.getInt(1);
+
+            return new GameData(gameID, gameName, null, null, chessGame);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: SQL Auth Insert Fail");
+        }
     }
 
     @Override
