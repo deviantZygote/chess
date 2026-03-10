@@ -303,9 +303,37 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public Collection<GameData> getGames() throws DataAccessException {
-        // return all games
+        Gson gson = new Gson();
         Collection<GameData> games = new ArrayList<>();
-        return games;
+
+        String sql = """
+        SELECT gameID, gameName, whiteUsername, blackUsername, game
+        FROM game
+        """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                ChessGame chessGame = gson.fromJson(rs.getString("game"), ChessGame.class);
+
+                GameData game = new GameData(
+                        rs.getInt("gameID"),
+                        rs.getString("gameName"),
+                        rs.getString("whiteUsername"),
+                        rs.getString("blackUsername"),
+                        chessGame
+                );
+
+                games.add(game);
+            }
+
+            return games;
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: SQL error getting games", e);
+        }
     }
 
     @Override

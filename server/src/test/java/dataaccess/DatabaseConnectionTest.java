@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -137,6 +141,31 @@ public class DatabaseConnectionTest {
         assertEquals(expectedChessGame.getBlackUsername(), returnedChessGame.getBlackUsername());
         assertEquals(expectedChessGame, returnedChessGame);
 
+    }
+
+    @Test
+    public void getGamesTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        String chessName1 = "chessGame1";
+        String chessName2 = "chessGame2";
+        String chessName3 = "chessGame3";
+
+        GameData chessGame1 = db.createGame(chessName1);
+        GameData chessGame2 = db.createGame(chessName2);
+        GameData chessGame3 = db.createGame(chessName3);
+
+
+        Collection<GameData> gamesData = db.getGames();
+
+        Set<String> names = new HashSet<>();
+
+        for (GameData game : gamesData) {
+            names.add(game.getGameName());
+        }
+
+        assertTrue(names.contains(chessName1));
+        assertTrue(names.contains(chessName2));
+        assertTrue(names.contains(chessName3));
     }
 
 
