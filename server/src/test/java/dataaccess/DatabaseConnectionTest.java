@@ -115,12 +115,28 @@ public class DatabaseConnectionTest {
     }
 
     @Test
-    public void getGameTest() throws Exception {
+    public void createGameTest() throws Exception {
         DatabaseDataAccess db = new DatabaseDataAccess();
         String gameName = "aChessGame";
         GameData chessGame = db.createGame(gameName);
 
         assertEquals(gameName, chessGame.getGameName());
+    }
+
+    @Test
+    public void getGameTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        String gameName = "aChessGame";
+        GameData expectedChessGame = db.createGame(gameName);
+
+        GameData returnedChessGame = db.getGame(expectedChessGame.getGameID());
+
+        assertEquals(expectedChessGame.getGameID(), returnedChessGame.getGameID());
+        assertEquals(expectedChessGame.getGameName(), returnedChessGame.getGameName());
+        assertEquals(expectedChessGame.getWhiteUsername(), returnedChessGame.getWhiteUsername());
+        assertEquals(expectedChessGame.getBlackUsername(), returnedChessGame.getBlackUsername());
+        assertEquals(expectedChessGame, returnedChessGame);
+
     }
 
 

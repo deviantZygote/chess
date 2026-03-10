@@ -261,14 +261,44 @@ public class DatabaseDataAccess implements DataAccess {
 
             return new GameData(gameID, gameName, null, null, chessGame);
         } catch (SQLException e) {
-            throw new DataAccessException("Error: SQL Auth Insert Fail");
+            throw new DataAccessException("Error: SQL Game Insert Fail");
         }
     }
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        // return existing game
-        return new GameData(1234, "fakeGame", "whiteUsername", "blackUsername", new ChessGame());
+        Gson gson = new Gson();
+
+        String sql = """
+        SELECT gameID, gameName, whiteUsername, blackUsername, game
+        FROM game
+        WHERE gameID = ?
+        """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, gameID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    ChessGame chessGame = gson.fromJson(rs.getString("game"), ChessGame.class);
+
+                    return new GameData(
+                            rs.getInt("gameID"),
+                            rs.getString("gameName"),
+                            rs.getString("whiteUsername"),
+                            rs.getString("blackUsername"),
+                            chessGame
+                    );
+                }
+            }
+
+            return null;
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to retrieve gameData", e);
+        }
     }
 
     @Override

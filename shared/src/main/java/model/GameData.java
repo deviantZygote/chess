@@ -2,6 +2,8 @@ package model;
 
 import chess.ChessGame;
 
+import java.util.Objects;
+
 public class GameData {
     private int gameID;
     private String gameName;
@@ -9,11 +11,30 @@ public class GameData {
     private String blackUsername;
     private ChessGame chessGame;
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        GameData gameData = (GameData) o;
+        return getGameID() == gameData.getGameID() &&
+                Objects.equals(getGameName(), gameData.getGameName()) &&
+                Objects.equals(getWhiteUsername(), gameData.getWhiteUsername()) &&
+                Objects.equals(getBlackUsername(), gameData.getBlackUsername()) &&
+                Objects.equals(getChessGame(), gameData.getChessGame());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGameID(), getGameName(), getWhiteUsername(), getBlackUsername(), getChessGame());
+    }
+
     public GameData(int gameID, String gameName, String whiteUsername, String blackUsername, ChessGame chessGame) {
         setGameID(gameID);
         setGameName(gameName);
         setWhiteUsername(whiteUsername);
         setBlackUsername(blackUsername);
+        setChessGame(chessGame);
     }
 
     public int getGameID() {
@@ -49,7 +70,9 @@ public class GameData {
     }
 
     public ChessGame getChessGame() {
-        return chessGame;
+        return this.chessGame;
     }
+
+    public void setChessGame(ChessGame chessGame) { this.chessGame = chessGame;}
 
 }
