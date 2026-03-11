@@ -167,6 +167,9 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
+        if (auth == null)  {
+            throw new DataAccessException("Error: SQL Auth Null");
+        }
         String sql = """
         INSERT INTO auth (authToken, username)
         VALUES (?, ?)

@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -100,6 +99,15 @@ public class DatabaseConnectionTest {
     }
 
     @Test
+    public void getUserFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        UserData expectedUser = new UserData("testUser", "testPassword", "test@email.com");
+        UserData returnedUser = db.getUser(expectedUser.username());
+
+        assertNull(returnedUser);
+    }
+
+    @Test
     public void createAuthTest() throws Exception {
         DatabaseDataAccess db = new DatabaseDataAccess();
         AuthData expectedAuthData = new AuthData("112345678911234567891123456789", "username");
@@ -107,6 +115,27 @@ public class DatabaseConnectionTest {
         AuthData returnedAuthData = db.getAuth(expectedAuthData.authToken());
 
         assertEquals(expectedAuthData.username(), returnedAuthData.username());
+    }
+
+    @Test
+    public void createAuthFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        assertThrows(DataAccessException.class, () -> db.createAuth(null));
+    }
+
+    @Test
+    public void getAuthTest() throws Exception {
+        createAuthTest();
+    }
+
+    @Test
+    public void getAuthFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        AuthData exampleAuthData = new AuthData("112345678911234567891123456789", "username");
+        AuthData returnedAuthData = db.getAuth(exampleAuthData.authToken());
+
+        assertNull(returnedAuthData);
+
     }
 
     @Test
@@ -120,12 +149,25 @@ public class DatabaseConnectionTest {
     }
 
     @Test
+    public void deleteAuthFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        AuthData exampleAuthData = new AuthData("112345678911234567891123456789", "username");
+        assertThrows(DataAccessException.class, () -> db.deleteAuth(exampleAuthData.authToken()));
+    }
+
+    @Test
     public void createGameTest() throws Exception {
         DatabaseDataAccess db = new DatabaseDataAccess();
         String gameName = "aChessGame";
         GameData chessGame = db.createGame(gameName);
 
         assertEquals(gameName, chessGame.getGameName());
+    }
+
+    @Test
+    public void createGameFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        assertThrows(DataAccessException.class, () -> db.createGame(null));
     }
 
     @Test
@@ -142,6 +184,12 @@ public class DatabaseConnectionTest {
         assertEquals(expectedChessGame.getBlackUsername(), returnedChessGame.getBlackUsername());
         assertEquals(expectedChessGame, returnedChessGame);
 
+    }
+
+    @Test
+    public void getGameFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        assertNull(db.getGame(-1));
     }
 
     @Test
@@ -170,6 +218,13 @@ public class DatabaseConnectionTest {
     }
 
     @Test
+    public void getGamesFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        Collection<GameData> gamesData = db.getGames();
+        assertTrue(gamesData.isEmpty());
+    }
+
+    @Test
     public void assignUserTest() throws Exception {
         DatabaseDataAccess db = new DatabaseDataAccess();
         String gameName = "aChessGame";
@@ -181,6 +236,24 @@ public class DatabaseConnectionTest {
         GameData returnedChessGame = db.getGame(expectedChessGame.getGameID());
 
         assertEquals(expectedUser.username(), returnedChessGame.getWhiteUsername());
+    }
+
+    @Test
+    public void assignUserFailTest() throws Exception {
+        DatabaseDataAccess db = new DatabaseDataAccess();
+        String gameName = "aChessGame";
+        GameData chessGame = db.createGame(gameName);
+        UserData firstUser = new UserData("testUser", "testPassword", "test@email.com");
+        UserData secondUser = new UserData("testUser2", "testPassword", "test@email.com");
+
+        db.assignGamePlayer(ChessGame.TeamColor.WHITE,
+                chessGame.getGameID(),
+                firstUser.username());
+
+        assertThrows(DataAccessException.class,
+                () -> db.assignGamePlayer(ChessGame.TeamColor.WHITE,
+                        chessGame.getGameID(),
+                        secondUser.username()));
     }
 
 
