@@ -4,6 +4,8 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import exceptions.*;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.util.UUID;
 import static helpers.HelperFunctions.isBlank;
 
@@ -24,8 +26,7 @@ public class LoginService {
                 UserData userData = dataAccess.getUser(req.username);
                 if ( userData == null ) {
                     throw new UnauthorizedException("Error: unauthorized");
-                } else if (userData.password().equals(req.password)) {
-                    // log in the validated user
+                } else if (BCrypt.checkpw(req.password, userData.password())) {
                     String token = UUID.randomUUID().toString();
                     dataAccess.createAuth(new AuthData(token, req.username));
                     return new LoginResponse(req.username, token);
