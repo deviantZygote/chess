@@ -71,7 +71,24 @@ public class ServerFacadeTests {
 
             Assertions.assertNotNull(loginResp.authToken);
             Assertions.assertEquals("bob", loginResp.username);
-            
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void LogoutTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            Assertions.assertDoesNotThrow(() -> serverFacade.logout(loginResp.authToken));
+
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }

@@ -54,7 +54,16 @@ public class ServerFacade {
         }
     }
 
-
+    public void logout(String authToken) throws ResponseException {
+        try {
+            URL url = configureUrl("/session");
+            HttpURLConnection http = configureHttp(url, "DELETE");
+            http.addRequestProperty("authorization", authToken);
+            handleResponse(http);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to login");
+        }
+    }
 
     private <T> T handleResponse(HttpURLConnection http, Class<T> responseClass) throws ResponseException {
         try {
