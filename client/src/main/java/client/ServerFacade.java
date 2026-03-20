@@ -57,4 +57,25 @@ public class ServerFacade {
             throw new ResponseException("Invalid response from server");
         }
     }
+
+    public void clear() throws ResponseException {
+        try {
+            URL url = (URI.create(serverUrl + "/db")).toURL();
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+
+            http.setRequestMethod("DELETE");
+            http.connect();
+
+            int status = http.getResponseCode();
+
+            if (status != 200) {
+                throw new ResponseException("Clear failed: " + status);
+            }
+
+        } catch (java.io.IOException e) {
+            throw new ResponseException("Unable to communicate with server");
+        } catch (IllegalArgumentException e) {
+            throw new ResponseException("Invalid server URL");
+        }
+    }
 }

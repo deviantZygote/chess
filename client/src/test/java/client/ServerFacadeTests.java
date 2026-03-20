@@ -17,9 +17,24 @@ public class ServerFacadeTests {
         System.out.println("Started test HTTP server on " + port);
     }
 
+    private ServerFacade serverFacade;
+
+    @BeforeEach
+    public void setup() throws ResponseException {
+        serverFacade = new ServerFacade("http://localhost:" + port);
+        serverFacade.clear();
+    }
+
     @AfterAll
     static void stopServer() {
         server.stop();
+
+    }
+
+    @AfterEach
+    public void tearDown() throws ResponseException {
+        serverFacade = new ServerFacade("http://localhost:" + port);
+        serverFacade.clear();
     }
 
 
@@ -37,6 +52,12 @@ public class ServerFacadeTests {
             throw new RuntimeException(e);
         }
         Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void ClearTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        Assertions.assertDoesNotThrow(() -> serverFacade.clear());
     }
 
 }
