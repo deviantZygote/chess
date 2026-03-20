@@ -1,7 +1,6 @@
 package client;
 
-import model.RegisterRequest;
-import model.RegisterResponse;
+import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import config.ServerConfig;
@@ -58,6 +57,24 @@ public class ServerFacadeTests {
     public void ClearTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         Assertions.assertDoesNotThrow(() -> serverFacade.clear());
+    }
+
+    @Test
+    public void LoginTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            Assertions.assertNotNull(loginResp.authToken);
+            Assertions.assertEquals("bob", loginResp.username);
+            
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

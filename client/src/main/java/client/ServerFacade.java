@@ -31,6 +31,31 @@ public class ServerFacade {
         }
     }
 
+    public void clear() throws ResponseException {
+        try {
+            URL url = configureUrl("/db");
+            HttpURLConnection http = configureHttp(url, "DELETE");
+            http.connect();
+            handleResponse(http);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to clear");
+        }
+    }
+
+    public LoginResponse login(LoginRequest loginRequest) throws ResponseException {
+        try {
+            URL url = configureUrl("/session");
+            HttpURLConnection http = configureHttp(url, "POST");
+            String jsonRequest = serializeJson(loginRequest);
+            writeBody(jsonRequest, http);
+            return handleResponse(http, LoginResponse.class);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to login");
+        }
+    }
+
+
+
     private <T> T handleResponse(HttpURLConnection http, Class<T> responseClass) throws ResponseException {
         try {
             int status = http.getResponseCode();
@@ -103,17 +128,5 @@ public class ServerFacade {
             throw new ResponseException("Error: MalformedURL in server URL");
         }
     }
-
-    public void clear() throws ResponseException {
-        try {
-            URL url = configureUrl("/db");
-            HttpURLConnection http = configureHttp(url, "DELETE");
-            http.connect();
-            handleResponse(http);
-        } catch (Exception e) {
-            throw new ResponseException("Error: Failed to clear");
-        }
-    }
-
 
 }
