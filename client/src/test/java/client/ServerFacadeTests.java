@@ -36,12 +36,7 @@ public class ServerFacadeTests {
         serverFacade = new ServerFacade("http://localhost:" + port);
         serverFacade.clear();
     }
-
-
-    @Test
-    public void sampleTest() {
-        Assertions.assertTrue(true);
-    }
+    
 
     @Test
     public void RegisterTest() {
