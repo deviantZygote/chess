@@ -1,5 +1,7 @@
 package client;
 
+import model.RegisterRequest;
+import model.RegisterResponse;
 import org.junit.jupiter.api.*;
 import server.Server;
 import config.ServerConfig;
@@ -36,17 +38,20 @@ public class ServerFacadeTests {
         serverFacade = new ServerFacade("http://localhost:" + port);
         serverFacade.clear();
     }
-    
+
 
     @Test
     public void RegisterTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
-            serverFacade.register("bob", "bobPass", "bob@email.com");
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            RegisterResponse resp = serverFacade.register(registerRequest);
+            Assertions.assertEquals("bob", resp.username);
+            Assertions.assertNotNull(resp.authToken);
+
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }
-        Assertions.assertTrue(true);
     }
 
     @Test

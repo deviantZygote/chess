@@ -19,10 +19,8 @@ public class ServerFacade {
         this.serverUrl = serverUrl;
     }
 
-    public RegisterResponse register(String username, String password, String email) throws ResponseException {
+    public RegisterResponse register(RegisterRequest registerRequest) throws ResponseException {
         try {
-            RegisterRequest request = new RegisterRequest(username, password, email);
-
             URL url = (URI.create(serverUrl + "/user")).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
 
@@ -31,7 +29,7 @@ public class ServerFacade {
             http.addRequestProperty("Content-Type", "application/json");
 
             Gson gson = new Gson();
-            String jsonRequest = gson.toJson(request);
+            String jsonRequest = gson.toJson(registerRequest);
 
             try (OutputStream reqBody = http.getOutputStream();
                  Writer writer = new OutputStreamWriter(reqBody)) {
@@ -78,4 +76,6 @@ public class ServerFacade {
             throw new ResponseException("Invalid server URL");
         }
     }
+
+
 }
