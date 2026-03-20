@@ -21,35 +21,45 @@ public class ServerFacade {
 
     public RegisterResponse register(RegisterRequest registerRequest) throws ResponseException {
         try {
-            // configure URL
             URL url = configureUrl("/user");
-
-            // handle httpConnection
             HttpURLConnection http = configureHttp(url, "POST");
-
-            // serialize json
             String jsonRequest = serializeJson(registerRequest);
-
-            // write body
             writeBody(jsonRequest, http);
+            return handleResponse(http, RegisterResponse.class);
+        } catch (Exception e) {
+            throw new ResponseException("Invalid response from server");
+        }
+    }
 
-            // handle response code
+    private <T> T handleResponse(HttpURLConnection http, Class<T> responseClass) throws ResponseException {
+        try {
             int status = http.getResponseCode();
 
             if (status == 200) {
                 try (InputStream respBody = http.getInputStream();
                      InputStreamReader reader = new InputStreamReader(respBody)) {
-                    return gson.fromJson(reader, RegisterResponse.class);
+                    return gson.fromJson(reader, responseClass);
                 }
             } else {
-                throw new ResponseException("Registration failed: " + status);
+                throw new ResponseException("Request failed: " + status);
             }
-        } catch (java.io.IOException e) {
-            throw new ResponseException("Unable to communicate with server");
-        } catch (IllegalArgumentException e) {
-            throw new ResponseException("Invalid server URL");
+
+        } catch (IOException e) {
+            throw new ResponseException("Error: Failed to get http response");
         } catch (com.google.gson.JsonSyntaxException e) {
             throw new ResponseException("Invalid response from server");
+        }
+    }
+
+    private void handleResponse(HttpURLConnection http) throws ResponseException {
+        try {
+            int status = http.getResponseCode();
+
+            if (status != 200) {
+                throw new ResponseException("Clear failed: " + status);
+            }
+        } catch (IOException e) {
+            throw new ResponseException("Error: Failed to get http response");
         }
     }
 
@@ -96,22 +106,12 @@ public class ServerFacade {
 
     public void clear() throws ResponseException {
         try {
-            URL url = (URI.create(serverUrl + "/db")).toURL();
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-
-            http.setRequestMethod("DELETE");
+            URL url = configureUrl("/db");
+            HttpURLConnection http = configureHttp(url, "DELETE");
             http.connect();
-
-            int status = http.getResponseCode();
-
-            if (status != 200) {
-                throw new ResponseException("Clear failed: " + status);
-            }
-
-        } catch (java.io.IOException e) {
-            throw new ResponseException("Unable to communicate with server");
-        } catch (IllegalArgumentException e) {
-            throw new ResponseException("Invalid server URL");
+            handleResponse(http);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to clear");
         }
     }
 
