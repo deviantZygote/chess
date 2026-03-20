@@ -31,10 +31,7 @@ public class ServerFacade {
             String jsonRequest = serializeJson(registerRequest);
 
             // write body
-            try (OutputStream reqBody = http.getOutputStream();
-                 Writer writer = new OutputStreamWriter(reqBody)) {
-                writer.write(jsonRequest);
-            }
+            writeBody(jsonRequest, http);
 
             // handle response code
             int status = http.getResponseCode();
@@ -53,6 +50,17 @@ public class ServerFacade {
             throw new ResponseException("Invalid server URL");
         } catch (com.google.gson.JsonSyntaxException e) {
             throw new ResponseException("Invalid response from server");
+        }
+    }
+
+    private <T> void writeBody (String jsonRequest, HttpURLConnection http) throws ResponseException {
+        try {
+            try (OutputStream reqBody = http.getOutputStream();
+                 Writer writer = new OutputStreamWriter(reqBody)) {
+                writer.write(jsonRequest);
+            }
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to write Body");
         }
     }
 
