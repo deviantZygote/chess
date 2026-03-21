@@ -61,6 +61,19 @@ public class ServerFacade {
             http.addRequestProperty("authorization", authToken);
             handleResponse(http);
         } catch (Exception e) {
+            throw new ResponseException("Error: Failed to logout");
+        }
+    }
+
+    public CreateGameResponse createGame(CreateGameRequest createGameRequest , String authToken) throws ResponseException {
+        try {
+            URL url = configureUrl("/game");
+            HttpURLConnection http = configureHttp(url, "POST");
+            String jsonRequest = serializeJson(createGameRequest);
+            http.addRequestProperty("authorization", authToken);
+            writeBody(jsonRequest, http);
+            return handleResponse(http, CreateGameResponse.class);
+        } catch (Exception e) {
             throw new ResponseException("Error: Failed to login");
         }
     }
