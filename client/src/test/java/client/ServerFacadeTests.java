@@ -113,4 +113,27 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    public void GetGamesTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            CreateGameResponse createGameResponse1 = serverFacade.createGame(new CreateGameRequest("newGame1"), loginResp.authToken);
+            CreateGameResponse createGameResponse2 = serverFacade.createGame(new CreateGameRequest("newGame2"), loginResp.authToken);
+            CreateGameResponse createGameResponse3 = serverFacade.createGame(new CreateGameRequest("newGame3"), loginResp.authToken);
+
+            GetGamesResponse getGamesResponse = serverFacade.getGames(loginResp.authToken);
+
+            Assertions.assertTrue(getGamesResponse.games.size() > 2);
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

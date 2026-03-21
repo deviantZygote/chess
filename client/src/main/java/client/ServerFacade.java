@@ -74,7 +74,18 @@ public class ServerFacade {
             writeBody(jsonRequest, http);
             return handleResponse(http, CreateGameResponse.class);
         } catch (Exception e) {
-            throw new ResponseException("Error: Failed to login");
+            throw new ResponseException("Error: Failed to create game");
+        }
+    }
+
+    public GetGamesResponse getGames(String authToken) throws ResponseException {
+        try {
+            URL url = configureUrl("/game");
+            HttpURLConnection http = configureHttp(url, "GET");
+            http.addRequestProperty("authorization", authToken);
+            return handleResponse(http, GetGamesResponse.class);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to get games");
         }
     }
 
