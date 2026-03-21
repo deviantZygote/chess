@@ -55,6 +55,21 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void RegisterFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            RegisterResponse resp = serverFacade.register(registerRequest);
+
+            RegisterRequest registerRequest2 = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.register(registerRequest2));
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
     public void ClearTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         Assertions.assertDoesNotThrow(() -> serverFacade.clear());
@@ -72,6 +87,20 @@ public class ServerFacadeTests {
 
             Assertions.assertNotNull(loginResp.authToken);
             Assertions.assertEquals("bob", loginResp.username);
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void LoginFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobWrongPass");
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.login(loginRequest));
 
         } catch (ResponseException e) {
             throw new RuntimeException(e);
@@ -96,6 +125,23 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void LogoutFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout("badToken123"));
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
     public void CreateGameTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
@@ -108,6 +154,27 @@ public class ServerFacadeTests {
             CreateGameResponse createGameResponse = serverFacade.createGame(new CreateGameRequest("newGame"), loginResp.authToken);
             Assertions.assertNotNull(createGameResponse);
             Assertions.assertTrue(createGameResponse.gameID > -1);
+
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void CreateGameFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            Assertions.assertThrows(ResponseException.class,
+                    () -> serverFacade.createGame(
+                            new CreateGameRequest("newGame"),
+                            "badLoginToken"));
+
 
         } catch (ResponseException e) {
             throw new RuntimeException(e);
@@ -151,7 +218,7 @@ public class ServerFacadeTests {
 
             JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
             Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(joinGameRequest, loginResp.authToken));
-            
+
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }
