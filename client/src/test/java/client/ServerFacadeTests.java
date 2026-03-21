@@ -205,6 +205,26 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void GetGamesFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            CreateGameResponse createGameResponse1 = serverFacade.createGame(new CreateGameRequest("newGame1"), loginResp.authToken);
+            CreateGameResponse createGameResponse2 = serverFacade.createGame(new CreateGameRequest("newGame2"), loginResp.authToken);
+            CreateGameResponse createGameResponse3 = serverFacade.createGame(new CreateGameRequest("newGame3"), loginResp.authToken);
+
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.getGames("BadToken123"));
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
     public void JoinGameTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
@@ -219,6 +239,35 @@ public class ServerFacadeTests {
             JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
             Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(joinGameRequest, loginResp.authToken));
 
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void JoinGameFailTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            RegisterRequest registerRequest2 = new RegisterRequest("bill", "billPass", "bill@email.com");
+            serverFacade.register(registerRequest2);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            LoginRequest loginRequest2 = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp2 = serverFacade.login(loginRequest2);
+
+            CreateGameResponse createGameResponse = serverFacade.createGame(new CreateGameRequest("newGame"), loginResp.authToken);
+
+            JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
+            serverFacade.joinGame(joinGameRequest, loginResp.authToken);
+
+            JoinGameRequest joinGameRequest2 = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinGameRequest2, loginResp2.authToken));
+            
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }
