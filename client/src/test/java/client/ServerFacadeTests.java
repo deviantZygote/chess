@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -131,6 +132,26 @@ public class ServerFacadeTests {
 
             Assertions.assertTrue(getGamesResponse.games.size() > 2);
 
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void JoinGameTest() {
+        ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
+        try {
+            RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
+            serverFacade.register(registerRequest);
+
+            LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
+            LoginResponse loginResp = serverFacade.login(loginRequest);
+
+            CreateGameResponse createGameResponse = serverFacade.createGame(new CreateGameRequest("newGame"), loginResp.authToken);
+
+            JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
+            Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(joinGameRequest, loginResp.authToken));
+            
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }

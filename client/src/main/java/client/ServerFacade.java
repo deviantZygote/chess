@@ -89,6 +89,19 @@ public class ServerFacade {
         }
     }
 
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException {
+        try {
+            URL url = configureUrl("/game");
+            HttpURLConnection http = configureHttp(url, "PUT");
+            http.addRequestProperty("authorization", authToken);
+            String jsonRequest = serializeJson(joinGameRequest);
+            writeBody(jsonRequest, http);
+            handleResponse(http);
+        } catch (Exception e) {
+            throw new ResponseException("Error: Failed to join game");
+        }
+    }
+
     private <T> T handleResponse(HttpURLConnection http, Class<T> responseClass) throws ResponseException {
         try {
             int status = http.getResponseCode();
