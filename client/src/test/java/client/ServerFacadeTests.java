@@ -267,7 +267,7 @@ public class ServerFacadeTests {
 
             JoinGameRequest joinGameRequest2 = new JoinGameRequest(ChessGame.TeamColor.WHITE, createGameResponse.gameID);
             Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinGameRequest2, loginResp2.authToken));
-            
+
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }
