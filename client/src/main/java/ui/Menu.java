@@ -38,7 +38,7 @@ public class Menu {
     }
 
     public void printPrompt() {
-        switch (this.state) {
+        switch (this.getState()) {
             case LOGGED_OUT:
                 System.out.print("\nSTART MENU: ");
                 break;
@@ -64,6 +64,9 @@ public class Menu {
         } else if (Pattern.matches("(?i)register", input) ||
                 Pattern.matches("(?i)r", input)) {
             register();
+        } else if (Pattern.matches("(?i)logout", input) ||
+                Pattern.matches("(?i)lo", input)) {
+            logout();
         }
     }
 
@@ -151,6 +154,17 @@ public class Menu {
         LOGGED_IN,
         LOGGED_OUT,
         IN_GAME
+    }
+
+    private void logout() {
+        try {
+            this.serverFacade.logout(getAuthToken());
+            setAuthToken("");
+            setState(STATE.LOGGED_OUT);
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.print("\nGoodbye, you're logged out.\n\nType help for options\n\n");
     }
 
     private void printQuit () {
