@@ -15,6 +15,7 @@ public class ClientMain {
         while (!Pattern.matches("(?i)quit", input) &&
                 !Pattern.matches("(?i)q", input)) {
             menu.processInput(input);
+            menu.printPrompt();
             input = menu.scanner.nextLine();
         }
         menu.processInput(input);

@@ -37,6 +37,20 @@ public class Menu {
         return this.state;
     }
 
+    public void printPrompt() {
+        switch (this.state) {
+            case LOGGED_OUT:
+                System.out.print("\nSTART MENU: ");
+                break;
+            case LOGGED_IN:
+                System.out.print("\nGAME BROWSER: ");
+                break;
+            case IN_GAME:
+                System.out.print("\nGAME MENU: ");
+                break;
+        }
+    }
+
     public void processInput (String input) {
         if (Pattern.matches("(?i)help", input) ||
                 Pattern.matches("(?i)h", input)) {
@@ -88,8 +102,7 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("Hello %s. You are registered and logged in.\n\n", username);
-        printHelp();
+        System.out.printf("\nHello %s. You are registered and logged in.\n\nType help for options\n\n", username);
     }
 
     private void printHelp () {
@@ -131,8 +144,7 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("Hello %s you're logged in.\n\n", username);
-        printHelp();
+        System.out.printf("\nHello %s you're logged in.\n\nType help for options\n\n", username);
     }
 
     public enum STATE {
