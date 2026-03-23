@@ -66,6 +66,8 @@ public class Menu {
             logout();
         } else if (Pattern.matches("(?i)^(cg|create\\s+game)\\s+(\\S+)$", input)) {
             createGame(input);
+        } else if (Pattern.matches("(?i)^(lg|list)$", input)) {
+            listGames();
         } else {
             System.out.println("Your input failed to match an option");
         }
@@ -182,6 +184,30 @@ public class Menu {
             CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
             CreateGameResponse gameResponse = this.serverFacade.createGame(createGameRequest, this.getAuthToken());
             System.out.printf("\nGame %s created with id: %s\n\n",gameName, gameResponse.gameID);
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void listGames() {
+        try {
+            GetGamesResponse getGamesResponse = this.serverFacade.getGames(this.getAuthToken());
+            for (GameData game : getGamesResponse.games) {
+                System.out.printf("\nGame ID: %s\n", game.getGameID());
+                System.out.printf("Game Name: %s\n", game.getGameName());
+
+                if (game.getWhiteUsername() == null) {
+                    System.out.print("White Player: OPEN\n");
+                } else {
+                    System.out.printf("White Player: %s\n", game.getWhiteUsername());
+                }
+
+                if (game.getBlackUsername() == null) {
+                    System.out.print("Black Player: OPEN\n");
+                } else {
+                    System.out.printf("Black Player: %s\n", game.getBlackUsername());
+                }
+            }
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
