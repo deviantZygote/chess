@@ -1,10 +1,22 @@
 package client;
 
 import chess.*;
+import ui.Menu;
+
+import java.util.regex.Pattern;
 
 public class ClientMain {
     public static void main(String[] args) {
-        var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-        System.out.println("♕ 240 Chess Client: " + piece);
+        Menu menu = new Menu();
+
+        System.out.println("Welcome to CS240 Chess\n");
+        String input = "help";
+
+        while (!Pattern.matches("(?i)quit", input) &&
+                !Pattern.matches("(?i)q", input)) {
+            menu.processInput(input);
+            input = menu.scanner.nextLine();
+        }
+        menu.processInput(input);
     }
 }

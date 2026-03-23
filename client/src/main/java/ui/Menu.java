@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class Menu {
     private STATE state = STATE.LOGGED_OUT;
-    private final Scanner scanner;
+    public final Scanner scanner;
     private final ServerFacade serverFacade;
     private String authToken = "";
 
@@ -37,21 +37,7 @@ public class Menu {
         return this.state;
     }
 
-    public static void main(String[] args) {
-        Menu menu = new Menu();
-
-        System.out.println("Welcome to CS240 Chess\n");
-        String input = "help";
-
-        while (!Pattern.matches("(?i)quit", input) &&
-                !Pattern.matches("(?i)q", input)) {
-            menu.processInput(input);
-            input = menu.scanner.nextLine();
-        }
-        menu.processInput(input);
-    }
-
-    private void processInput (String input) {
+    public void processInput (String input) {
         if (Pattern.matches("(?i)help", input) ||
                 Pattern.matches("(?i)h", input)) {
             printHelp();
