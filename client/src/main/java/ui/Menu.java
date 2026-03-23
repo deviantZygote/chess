@@ -102,7 +102,8 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("Hello %s. You are registered and logged in.", username);
+        System.out.printf("Hello %s. You are registered and logged in.\n\n", username);
+        printHelp();
     }
 
     private void printHelp () {
@@ -144,8 +145,8 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("Hello %s you're logged in.", username);
-
+        System.out.printf("Hello %s you're logged in.\n\n", username);
+        printHelp();
     }
 
     public enum STATE {
