@@ -4,6 +4,8 @@ import client.ResponseException;
 import client.ServerFacade;
 import model.LoginRequest;
 import model.LoginResponse;
+import model.RegisterRequest;
+import model.RegisterResponse;
 
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -58,11 +60,50 @@ public class Menu {
             printQuit();
         } else if (Pattern.matches("(?i)login", input) ||
                 Pattern.matches("(?i)li", input)) {
-            login(scanner);
+            login();
+        } else if (Pattern.matches("(?i)register", input) ||
+                Pattern.matches("(?i)r", input)) {
+            register();
         }
     }
 
+    private void register() {
 
+        System.out.println("Enter your email");
+        String email = scanner.nextLine();
+
+        System.out.println("Enter a new username");
+        String username = scanner.nextLine();
+
+
+        String password = "";
+        String confirmPassword = "";
+        do {
+            System.out.println("Enter a new password");
+            password = scanner.nextLine();
+            System.out.println("re-enter your password");
+            confirmPassword = scanner.nextLine();
+
+            if (!confirmPassword.equals(password) ||
+                    password.isEmpty() ||
+                    confirmPassword.isEmpty()) {
+                System.out.println("Your passwords aren't matching or are empty.\nTry again.\n");
+            }
+        } while (!confirmPassword.equals(password) ||
+                password.isEmpty() ||
+                confirmPassword.isEmpty());
+
+        RegisterRequest registerRequest = new RegisterRequest(username, password, email);
+
+        try {
+            RegisterResponse registerResponse = this.serverFacade.register(registerRequest);
+            setAuthToken(registerResponse.authToken);
+            setState(STATE.LOGGED_IN);
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.printf("Hello %s. You are registered and logged in.", username);
+    }
 
     private void printHelp () {
         switch (this.state) {
@@ -88,7 +129,7 @@ public class Menu {
 
     }
 
-    private void login(Scanner scanner) {
+    private void login() {
         System.out.println("Enter your username");
         String username = scanner.nextLine();
         System.out.println("Enter your password");
@@ -103,7 +144,7 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("Username: %s\nPassword: %s", username, password);
+        System.out.printf("Hello %s you're logged in.", username);
 
     }
 
