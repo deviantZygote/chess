@@ -2,10 +2,7 @@ package ui;
 
 import client.ResponseException;
 import client.ServerFacade;
-import model.LoginRequest;
-import model.LoginResponse;
-import model.RegisterRequest;
-import model.RegisterResponse;
+import model.*;
 
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -67,6 +64,10 @@ public class Menu {
         } else if (Pattern.matches("(?i)logout", input) ||
                 Pattern.matches("(?i)lo", input)) {
             logout();
+        } else if (Pattern.matches("(?i)^(cg|create\\s+game)\\s+(\\S+)$", input)) {
+            createGame(input);
+        } else {
+            System.out.println("Your input failed to match an option");
         }
     }
 
@@ -144,10 +145,10 @@ public class Menu {
             LoginResponse loginResponse = this.serverFacade.login(loginRequest);
             setAuthToken(loginResponse.authToken);
             setState(STATE.LOGGED_IN);
+            System.out.printf("\nHello %s you're logged in.\n\nType help for options\n\n", username);
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("\nHello %s you're logged in.\n\nType help for options\n\n", username);
     }
 
     public enum STATE {
@@ -165,6 +166,25 @@ public class Menu {
             System.out.println(e.getMessage());
         }
         System.out.print("\nGoodbye, you're logged out.\n\nType help for options\n\n");
+    }
+
+    private void createGame(String input) {
+        try {
+            String gameName = "";
+            String[] args = input.split(" ");
+            if (args.length > 2) {
+                gameName = args[2];
+            } else if (args.length == 1) {
+                System.out.print("\n\nYou don't have a game name specified, try again.\n\n");
+            } else if (args.length == 2) {
+                gameName = args[1];
+            }
+            CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
+            CreateGameResponse gameResponse = this.serverFacade.createGame(createGameRequest, this.getAuthToken());
+            System.out.printf("\nGame %s created with id: %s\n\n",gameName, gameResponse.gameID);
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void printQuit () {
