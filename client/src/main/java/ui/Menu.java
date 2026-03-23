@@ -1,10 +1,12 @@
 package ui;
 
+import chess.ChessGame;
 import client.ResponseException;
 import client.ServerFacade;
 import model.*;
 
 import java.util.Scanner;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Menu {
@@ -68,6 +70,11 @@ public class Menu {
             createGame(input);
         } else if (Pattern.matches("(?i)^(lg|list)$", input)) {
             listGames();
+        } else if (Pattern.matches("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black)$", input)) {
+            joinGame(input);
+        } else if (Pattern.matches("(?i)^(gb|game\\s+browser)$", input)) {
+            this.setState(STATE.LOGGED_IN);
+            System.out.print("\n\nReturning to game browser\n\n");
         } else {
             System.out.println("Your input failed to match an option");
         }
@@ -126,10 +133,14 @@ public class Menu {
                 System.out.println("logout : lo");
                 System.out.println("create game : cg <gameName>");
                 System.out.println("list games : lg");
-                System.out.println("join game : jg <gameId>");
+                System.out.println("join game : jg <gameId> <color|c>");
                 System.out.println("watch game : wg <gameId>");
                 break;
             case IN_GAME:
+                System.out.println("Available Commands:");
+                System.out.println("draw board : db");
+                System.out.println("game browser : gb");
+                System.out.println("logout : lo");
                 break;
         }
 
@@ -211,6 +222,35 @@ public class Menu {
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    private void joinGame(String input) {
+        try {
+            Pattern pattern = Pattern.compile("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black|w|b)$");
+            Matcher matcher = pattern.matcher(input);
+
+            if (matcher.matches()) {
+                int gameId = Integer.parseInt(matcher.group(2));
+                String colorInput = matcher.group(3).toLowerCase();
+
+                ChessGame.TeamColor color;
+
+                if (colorInput.equals("w") || colorInput.equals("white")) {
+                    color = ChessGame.TeamColor.WHITE;
+                } else {
+                    color = ChessGame.TeamColor.BLACK;
+                }
+
+                JoinGameRequest request = new JoinGameRequest(color, gameId);
+                serverFacade.joinGame(request, getAuthToken());
+                setState(STATE.IN_GAME);
+                System.out.printf("\n\nJoined Game: %s\nPress h for commands:\n\n", gameId);
+            }
+
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
+
     }
 
     private void printQuit () {
