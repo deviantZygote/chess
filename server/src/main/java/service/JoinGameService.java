@@ -21,16 +21,53 @@ public class JoinGameService {
             if (gameData == null) {
                 throw new BadRequestException("Error: bad request");
             }
+
+            AuthData authData = dataAccess.getAuth(authToken);
+            String username = authData.username();
+
+            if (playerReturning(gameData, req.playerColor, username)) {
+                return;
+            }
+
             if (!targetColorOpen(gameData, req)) {
                 throw new AlreadyTakenException("Error: already taken");
             }
 
-            AuthData authData = dataAccess.getAuth(authToken);
+            if (playerAlreadyInOppositeSeat(gameData, req.playerColor, username)) {
+                throw new AlreadyTakenException("Error: already in game");
+            }
 
             dataAccess.assignGamePlayer(req.playerColor, req.gameID, authData.username());
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean playerAlreadyInOppositeSeat (GameData gameData, ChessGame.TeamColor requestColor, String username) {
+        if (requestColor == ChessGame.TeamColor.WHITE) {
+            if (username.equals(gameData.getBlackUsername())) {
+                return true;
+            }
+        } else {
+            if (username.equals(gameData.getWhiteUsername())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean playerReturning (GameData gameData, ChessGame.TeamColor requestColor, String username) {
+
+        if (requestColor == ChessGame.TeamColor.WHITE) {
+            if (username.equals(gameData.getWhiteUsername())) {
+                return true;
+            }
+        } else {
+            if (username.equals(gameData.getBlackUsername())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean targetColorOpen(GameData gameData, JoinGameRequest req) {
