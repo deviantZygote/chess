@@ -134,10 +134,10 @@ public class Menu {
             RegisterResponse registerResponse = this.serverFacade.register(registerRequest);
             setAuthToken(registerResponse.authToken);
             setState(STATE.LOGGED_IN);
+            System.out.printf("\nHello %s. You are registered and logged in.\n\nType help for options\n\n", username);
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
-        System.out.printf("\nHello %s. You are registered and logged in.\n\nType help for options\n\n", username);
     }
 
     private void printHelp () {
