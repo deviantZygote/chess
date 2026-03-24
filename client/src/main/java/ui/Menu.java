@@ -219,8 +219,8 @@ public class Menu {
                 gameName = args[1];
             }
             CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
-            CreateGameResponse gameResponse = this.serverFacade.createGame(createGameRequest, this.getAuthToken());
-            System.out.printf("\nGame %s created with id: %s\n\n",gameName, gameResponse.gameID);
+            this.serverFacade.createGame(createGameRequest, this.getAuthToken());
+            System.out.printf("\nGame %s created\n\n",gameName);
         } catch (ResponseException e) {
             System.out.println(e.getMessage());
         }
@@ -260,7 +260,13 @@ public class Menu {
             if (matcher.matches()) {
                 int clientDisplayId = Integer.parseInt(matcher.group(2));
 
-                GameData targetGameData = gamesResponse.games.get(clientDisplayId - 1);
+                GameData targetGameData = null;
+                try {
+                    targetGameData = gamesResponse.games.get(clientDisplayId - 1);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.printf("\n\nCheck your game Number: %s\nPress h for commands:\n\n", clientDisplayId);
+                    return;
+                }
                 String colorInput = matcher.group(3).toLowerCase();
 
                 ChessGame.TeamColor color;
