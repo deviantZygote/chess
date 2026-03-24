@@ -5,6 +5,7 @@ import client.ResponseException;
 import client.ServerFacade;
 import model.*;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +17,7 @@ public class Menu {
     private String authToken = "";
     private ChessGame.TeamColor teamColor = null;
     private ChessGame chessGame = null;
+    private GetGamesResponse gamesResponse;
 
     public Menu () {
         this.scanner = new Scanner(System.in);
@@ -226,9 +228,9 @@ public class Menu {
 
     private void listGames() {
         try {
-            GetGamesResponse getGamesResponse = this.serverFacade.getGames(this.getAuthToken());
+            this.gamesResponse = this.serverFacade.getGames(this.getAuthToken());
             int gameNumber = 0;
-            for (GameData game : getGamesResponse.games) {
+            for (GameData game : this.gamesResponse.games) {
                 gameNumber++;
                 System.out.printf("\nGame ID: %s\n", gameNumber);
                 System.out.printf("Game Name: %s\n", game.getGameName());
@@ -256,7 +258,9 @@ public class Menu {
             Matcher matcher = pattern.matcher(input);
 
             if (matcher.matches()) {
-                int gameId = Integer.parseInt(matcher.group(2));
+                int clientDisplayId = Integer.parseInt(matcher.group(2));
+
+                GameData targetGameData = gamesResponse.games.get(clientDisplayId - 1);
                 String colorInput = matcher.group(3).toLowerCase();
 
                 ChessGame.TeamColor color;
@@ -267,13 +271,13 @@ public class Menu {
                     color = ChessGame.TeamColor.BLACK;
                 }
 
-                JoinGameRequest request = new JoinGameRequest(color, gameId);
+                JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
                 serverFacade.joinGame(request, getAuthToken());
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);
                 drawBoard();
-                System.out.printf("\n\nJoined Game: %s\nPress h for commands:\n\n", gameId);
+                System.out.printf("\n\nJoined Game: %s\nPress h for commands:\n\n", clientDisplayId);
             }
 
         } catch (ResponseException e) {
