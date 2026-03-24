@@ -32,10 +32,7 @@ public class JoinGameService {
             if (!targetColorOpen(gameData, req)) {
                 throw new AlreadyTakenException("Error: already taken");
             }
-
-            if (playerAlreadyInOppositeSeat(gameData, req.playerColor, username)) {
-                throw new AlreadyTakenException("Error: already in game");
-            }
+            
 
             dataAccess.assignGamePlayer(req.playerColor, req.gameID, authData.username());
         } catch (DataAccessException e) {
@@ -43,18 +40,6 @@ public class JoinGameService {
         }
     }
 
-    private boolean playerAlreadyInOppositeSeat (GameData gameData, ChessGame.TeamColor requestColor, String username) {
-        if (requestColor == ChessGame.TeamColor.WHITE) {
-            if (username.equals(gameData.getBlackUsername())) {
-                return true;
-            }
-        } else {
-            if (username.equals(gameData.getWhiteUsername())) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private boolean playerReturning (GameData gameData, ChessGame.TeamColor requestColor, String username) {
 
