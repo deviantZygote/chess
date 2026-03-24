@@ -32,7 +32,7 @@ public class JoinGameService {
             if (!targetColorOpen(gameData, req)) {
                 throw new AlreadyTakenException("Error: already taken");
             }
-            
+
 
             dataAccess.assignGamePlayer(req.playerColor, req.gameID, authData.username());
         } catch (DataAccessException e) {

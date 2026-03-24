@@ -41,7 +41,7 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void RegisterTest() {
+    public void registerTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -55,7 +55,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void RegisterFailTest() {
+    public void registerFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -70,13 +70,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void ClearTest() {
+    public void clearTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         Assertions.assertDoesNotThrow(() -> serverFacade.clear());
     }
 
     @Test
-    public void LoginTest() {
+    public void loginTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -93,7 +93,8 @@ public class ServerFacadeTests {
         }
     }
 
-    public void LoginFailTest() {
+    @Test
+    public void loginFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -108,7 +109,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void LogoutTest() {
+    public void logoutTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -125,7 +126,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void LogoutFailTest() {
+    public void logoutFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -142,7 +143,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGameTest() {
+    public void createGameTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -161,7 +162,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGameFailTest() {
+    public void createGameFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -182,7 +183,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void GetGamesTest() {
+    public void getGamesTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -205,7 +206,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void GetGamesFailTest() {
+    public void getGamesFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -225,7 +226,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameTest() {
+    public void joinGameTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -245,7 +246,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameFailTest() {
+    public void joinGameFailTest() {
         ServerFacade serverFacade = new ServerFacade(ServerConfig.SERVER_URL + port);
         try {
             RegisterRequest registerRequest = new RegisterRequest("bob", "bobPass", "bob@email.com");
@@ -257,7 +258,7 @@ public class ServerFacadeTests {
             LoginRequest loginRequest = new LoginRequest("bob", "bobPass");
             LoginResponse loginResp = serverFacade.login(loginRequest);
 
-            LoginRequest loginRequest2 = new LoginRequest("bob", "bobPass");
+            LoginRequest loginRequest2 = new LoginRequest("bill", "billPass");
             LoginResponse loginResp2 = serverFacade.login(loginRequest2);
 
             CreateGameResponse createGameResponse = serverFacade.createGame(new CreateGameRequest("newGame"), loginResp.authToken);
