@@ -94,10 +94,12 @@ public class Menu {
             this.setState(STATE.LOGGED_IN);
             this.setTeamColor(null);
             System.out.print("\n\nReturning to game browser\n\n");
-        }else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
+        } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
             // I need to draw the board based on the state of the game and the player color.
             drawBoard();
-        }  else {
+        } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
+            watchGame(input);
+        } else {
             System.out.println("Your input failed to match an option");
         }
     }
@@ -225,8 +227,10 @@ public class Menu {
     private void listGames() {
         try {
             GetGamesResponse getGamesResponse = this.serverFacade.getGames(this.getAuthToken());
+            int gameNumber = 0;
             for (GameData game : getGamesResponse.games) {
-                System.out.printf("\nGame ID: %s\n", game.getGameID());
+                gameNumber++;
+                System.out.printf("\nGame ID: %s\n", gameNumber);
                 System.out.printf("Game Name: %s\n", game.getGameName());
 
                 if (game.getWhiteUsername() == null) {
@@ -448,6 +452,19 @@ public class Menu {
     private void resetColors() {
         System.out.print(EscapeSequences.RESET_BG_COLOR);
         System.out.print(EscapeSequences.RESET_TEXT_COLOR);
+    }
+
+    private void watchGame(String input) {
+        Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.matches()) {
+            int gameId = Integer.parseInt(matcher.group(2));
+
+            setState(STATE.IN_GAME);
+            drawBoard();
+            System.out.printf("\n\nObserving Game: %s\nPress h for commands:\n\n", gameId);
+        }
     }
 
     private void printQuit () {
