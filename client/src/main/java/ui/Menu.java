@@ -334,7 +334,7 @@ public class Menu {
     }
 
     private void printSquare(chess.ChessBoard board, int row, int col) {
-        boolean lightSquare = (row + col) % 2 == 0;
+        boolean lightSquare = (row + col) % 2 == 1;
 
         if (lightSquare) {
             System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
