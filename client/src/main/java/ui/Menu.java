@@ -3,6 +3,7 @@ package ui;
 import chess.ChessGame;
 import client.ResponseException;
 import client.ServerFacade;
+import client.WebSocketFacade;
 import model.*;
 
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ public class Menu {
     private ChessGame.TeamColor teamColor = null;
     private ChessGame chessGame = null;
     private GetGamesResponse gamesResponse;
+    private WebSocketFacade webSocketFacade;
+
 
     public Menu () {
         this.scanner = new Scanner(System.in);
@@ -92,12 +95,11 @@ public class Menu {
             listGames();
         } else if (Pattern.matches("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black)$", input)) {
             joinGame(input);
-        } else if (Pattern.matches("(?i)^(gb|game\\s+browser)$", input)) {
+        } else if (Pattern.matches("(?i)^(lg|leave\\s+game)$", input)) {
             this.setState(STATE.LOGGED_IN);
             this.setTeamColor(null);
-            System.out.print("\n\nReturning to game browser\n\n");
+            System.out.print("\n\nLeaving game\n\n");
         } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
-            // I need to draw the board based on the state of the game and the player color.
             drawBoard();
         } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
             watchGame(input);
@@ -279,6 +281,7 @@ public class Menu {
 
                 JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
                 serverFacade.joinGame(request, getAuthToken());
+                webSocketFacade = new WebSocketFacade();
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);
