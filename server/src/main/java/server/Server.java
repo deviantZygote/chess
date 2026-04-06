@@ -41,10 +41,31 @@ public class Server {
             JoinGameService joinGameService = new JoinGameService(dataAccess);
             JoinGameHandler joinGameHandler = new JoinGameHandler(joinGameService);
             javalin.put("/game", joinGameHandler::handle);
+
+            javalin.ws("/ws", ws -> {
+
+                ws.onConnect(ctx -> {
+                    System.out.println("Client connected");
+                });
+
+                ws.onMessage(ctx -> {
+                    System.out.println("Message from client: " + ctx.message());
+                });
+
+                ws.onClose(ctx -> {
+                    System.out.println("Client disconnected");
+                });
+
+            });
+
         } catch (DataAccessException e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
 
+
+    }
+
+    private void connect() {
 
     }
 

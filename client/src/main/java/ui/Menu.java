@@ -6,7 +6,6 @@ import client.ServerFacade;
 import client.WebSocketFacade;
 import model.*;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,13 +17,16 @@ public class Menu {
     private String authToken = "";
     private ChessGame.TeamColor teamColor = null;
     private ChessGame chessGame = null;
-    private GetGamesResponse gamesResponse;
+    private GetGamesResponse gamesResponse = null;
     private WebSocketFacade webSocketFacade;
+    private final String serverUrl;
+
 
 
     public Menu () {
         this.scanner = new Scanner(System.in);
-        this.serverFacade = new ServerFacade("http://localhost:8080");
+        serverUrl = "http://localhost:8080";
+        this.serverFacade = new ServerFacade(serverUrl);
     }
 
     private void setChessGame(ChessGame chessGame) {
@@ -263,6 +265,10 @@ public class Menu {
                 int clientDisplayId = Integer.parseInt(matcher.group(2));
 
                 GameData targetGameData = null;
+                if (gamesResponse == null) {
+                    System.out.println("\n\nFirst List the available games\n\nPress h for commands:\n\n");
+                    return;
+                }
                 try {
                     targetGameData = gamesResponse.games.get(clientDisplayId - 1);
                 } catch (IndexOutOfBoundsException e) {
@@ -281,7 +287,10 @@ public class Menu {
 
                 JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
                 serverFacade.joinGame(request, getAuthToken());
-                webSocketFacade = new WebSocketFacade();
+
+                webSocketFacade = new WebSocketFacade(serverUrl);
+                JoinGameWS joinGameWs = new JoinGameWS(getAuthToken(), targetGameData.getGameID());
+                webSocketFacade.connect(joinGameWs);
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);
