@@ -3,6 +3,7 @@ package ui;
 import chess.ChessGame;
 import client.ResponseException;
 import client.ServerFacade;
+import client.WebSocketConnectionException;
 import client.WebSocketFacade;
 import model.*;
 
@@ -289,8 +290,14 @@ public class Menu {
                 serverFacade.joinGame(request, getAuthToken());
 
                 webSocketFacade = new WebSocketFacade(serverUrl);
-                JoinGameWS joinGameWs = new JoinGameWS(getAuthToken(), targetGameData.getGameID());
-                webSocketFacade.connect(joinGameWs);
+                JoinGameWS joinGameWs = new JoinGameWS(WSCommands.JOIN_GAME, getAuthToken(), targetGameData.getGameID());
+
+                try {
+                    webSocketFacade.connect(joinGameWs);
+                } catch (WebSocketConnectionException e) {
+                    System.out.println(e.getMessage());
+                    return;
+                }
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);

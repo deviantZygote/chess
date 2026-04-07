@@ -5,7 +5,6 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import exceptions.*;
 import model.*;
-import java.util.ArrayList;
 import static helpers.HelperFunctions.validateLogin;
 
 public class JoinGameService {

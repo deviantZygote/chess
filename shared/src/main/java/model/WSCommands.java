@@ -1,0 +1,5 @@
+package model;
+
+public enum WSCommands {
+    JOIN_GAME
+}

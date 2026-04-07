@@ -43,13 +43,14 @@ public class Server {
             javalin.put("/game", joinGameHandler::handle);
 
             javalin.ws("/ws", ws -> {
+                WebSocketService webSocketService = new WebSocketService();
 
                 ws.onConnect(ctx -> {
                     System.out.println("Client connected");
                 });
 
                 ws.onMessage(ctx -> {
-                    System.out.println("Message from client: " + ctx.message());
+                    webSocketService.handleCommand(ctx.message());
                 });
 
                 ws.onClose(ctx -> {

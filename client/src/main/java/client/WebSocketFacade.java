@@ -17,16 +17,14 @@ public class WebSocketFacade {
                 + "/ws";
     }
 
-    public void connect (JoinGameWS joinGameWS) {
+    public void connect (JoinGameWS joinGameWS) throws WebSocketConnectionException {
         try {
-            System.out.println("Connecting to: " + webSocketUrl);
-
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             client = new ChessWebSocketClient(joinGameWS);
             container.connectToServer(client, URI.create(webSocketUrl));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new WebSocketConnectionException("Error: Failed to make web socket connection ");
         }
     }
 

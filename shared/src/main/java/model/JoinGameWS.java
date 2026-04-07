@@ -1,3 +1,3 @@
 package model;
 
-public record JoinGameWS (String authToken, int gameID) {}
+public record JoinGameWS(WSCommands commandType, String authToken, int gameID) {}

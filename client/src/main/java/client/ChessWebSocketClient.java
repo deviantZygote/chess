@@ -4,6 +4,7 @@ import jakarta.websocket.*;
 import model.JoinGameWS;
 
 import com.google.gson.Gson;
+import model.WSCommands;
 
 @ClientEndpoint
 public class ChessWebSocketClient {
@@ -38,7 +39,7 @@ public class ChessWebSocketClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        JoinGameWS joinGameWS = new JoinGameWS(getAuthToken(), getGameID());
+        JoinGameWS joinGameWS = new JoinGameWS(WSCommands.JOIN_GAME, getAuthToken(), getGameID());
         send(gson.toJson(joinGameWS));
     }
 
