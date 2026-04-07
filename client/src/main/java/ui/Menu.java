@@ -195,6 +195,13 @@ public class Menu {
         }
     }
 
+    public void handleUnauthorized() {
+        setAuthToken(null);
+        setState(STATE.LOGGED_OUT);
+        System.out.println("\nYou were logged out!\n\n");
+        printHelp();
+    }
+
     public enum STATE {
         LOGGED_IN,
         LOGGED_OUT,
@@ -289,7 +296,7 @@ public class Menu {
                 JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
                 serverFacade.joinGame(request, getAuthToken());
 
-                webSocketFacade = new WebSocketFacade(serverUrl);
+                webSocketFacade = new WebSocketFacade(serverUrl, this);
                 JoinGameWS joinGameWs = new JoinGameWS(WSCommands.JOIN_GAME, getAuthToken(), targetGameData.getGameID());
 
                 try {

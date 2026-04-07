@@ -43,14 +43,14 @@ public class Server {
             javalin.put("/game", joinGameHandler::handle);
 
             javalin.ws("/ws", ws -> {
-                WebSocketService webSocketService = new WebSocketService();
+                WebSocketService webSocketService = new WebSocketService(dataAccess);
 
                 ws.onConnect(ctx -> {
                     System.out.println("Client connected");
                 });
 
                 ws.onMessage(ctx -> {
-                    webSocketService.handleCommand(ctx.message());
+                    webSocketService.handleCommand(ctx);
                 });
 
                 ws.onClose(ctx -> {
@@ -63,10 +63,6 @@ public class Server {
             throw new RuntimeException("Failed to initialize database", e);
         }
 
-
-    }
-
-    private void connect() {
 
     }
 
