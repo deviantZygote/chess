@@ -358,8 +358,10 @@ public class Menu {
     }
 
     private void drawBoard() {
-        // will probably change this to a socket game state but for now will just initialize.
-        setChessGame(new ChessGame());
+        if (this.getChessGame() == null) {
+            printToTerminal("\nNo game loaded!\n");
+            return;
+        }
         if (this.teamColor == ChessGame.TeamColor.WHITE) {
             drawWhiteOrientation();
         } else {
@@ -562,6 +564,7 @@ public class Menu {
         }
         try {
             targetGameData = gamesResponse.games.get(clientDisplayId - 1);
+            setChessGame(targetGameData.getChessGame());
         } catch (IndexOutOfBoundsException e) {
             printToTerminal(String.format("\n\nCheck your game Number: %s\nPress h for commands:\n\n",
                     clientDisplayId));
