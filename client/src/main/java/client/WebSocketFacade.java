@@ -31,7 +31,7 @@ public class WebSocketFacade {
         }
     }
 
-    public void send(String message) {
-        client.send(message);
+    public void send(Object o) {
+        client.send(o);
     }
 }

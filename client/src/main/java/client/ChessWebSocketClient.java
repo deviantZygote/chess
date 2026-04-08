@@ -43,7 +43,7 @@ public class ChessWebSocketClient {
     public void onOpen(Session session) {
         this.session = session;
         JoinGameWS joinGameWS = new JoinGameWS(WSCommands.JOIN_GAME, this.getAuthToken(), getGameID());
-        send(gson.toJson(joinGameWS));
+        send(joinGameWS);
     }
 
     @OnMessage
@@ -59,9 +59,9 @@ public class ChessWebSocketClient {
         menu.closeSocket("\n\nLost connection to game: " + reason + "\n");
     }
 
-    public void send(String message) {
+    public void send(Object o) {
         try {
-            session.getBasicRemote().sendText(message);
+            session.getBasicRemote().sendText(gson.toJson(o));
         } catch (Exception e) {
             e.printStackTrace();
         }

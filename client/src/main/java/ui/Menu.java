@@ -22,6 +22,8 @@ public class Menu {
     private WebSocketFacade webSocketFacade;
     private final String serverUrl;
     private final Object consoleLock = new Object();
+    private GameData targetGameData = null;
+
 
 
 
@@ -125,10 +127,8 @@ public class Menu {
             listGames();
         } else if (Pattern.matches("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black)$", input)) {
             joinGame(input);
-        } else if (Pattern.matches("(?i)^(lg|leave\\s+game)$", input)) {
-            this.setState(STATE.LOGGED_IN);
-            this.setTeamColor(null);
-            printToTerminal("\n\nLeaving game\n\n");
+        } else if (Pattern.matches("(?i)^(lm|leave\\s+match)$", input)) {
+            leaveMatch();
         } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
             drawBoard();
         } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
@@ -136,6 +136,15 @@ public class Menu {
         } else {
             printToTerminal("Your input failed to match an option");
         }
+    }
+
+    private void leaveMatch() {
+        LeaveGameWS leaveGameWs = new LeaveGameWS(WSCommands.LEAVE_GAME, getAuthToken(), targetGameData.getGameID());
+
+        webSocketFacade.send(leaveGameWs);
+        this.setState(STATE.LOGGED_IN);
+        this.setTeamColor(null);
+        printToTerminal("\n\nLeaving match\n\n");
     }
 
     private void register() {
@@ -199,7 +208,8 @@ public class Menu {
             case IN_GAME:
                 printToTerminal("\nAvailable Commands:\n");
                 printToTerminal("draw board : db\n");
-                printToTerminal("game browser : gb\n");
+                printToTerminal("leave match : lm\n");
+
                 printToTerminal("logout : lo\n");
                 break;
         }
@@ -303,7 +313,6 @@ public class Menu {
             if (matcher.matches()) {
                 int clientDisplayId = Integer.parseInt(matcher.group(2));
 
-                GameData targetGameData = null;
                 if (gamesResponse == null) {
                     printToTerminal("\n\nFirst List the available games\n\nPress h for commands:\n\n");
                     return;
