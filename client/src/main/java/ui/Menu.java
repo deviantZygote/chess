@@ -1,13 +1,15 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import client.ResponseException;
 import client.ServerFacade;
 import client.WebSocketConnectionException;
 import client.WebSocketFacade;
 import model.*;
 
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +25,8 @@ public class Menu {
     private final String serverUrl;
     private final Object consoleLock = new Object();
     private GameData targetGameData = null;
+    private Set<ChessPosition> highlightedSquares = new HashSet<>();
+
 
 
 
@@ -142,10 +146,67 @@ public class Menu {
             watchGame(input);
         } else if (Pattern.matches("(?i)^(spt|show\\s+player\\s+turn)$", input)) {
             showPlayerTurn();
-        } else {
+        } else if (Pattern.matches("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$", input)) {
+            showPieceMoves(input);
+        }  else {
             printToTerminal("Your input failed to match an option");
         }
     }
+
+    private void showPieceMoves(String input) {
+        Pattern pattern = Pattern.compile("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.matches()) {
+            String stringPosition = matcher.group(2);
+            ChessPosition targetPosition = convertStringToChessPosition(stringPosition);
+            if (targetPosition == null) {
+                printToTerminal("\n" + stringPosition + " not a valid position.\nTry again\n");
+            } else {
+                Collection<ChessMove> validMoves = new ArrayList<>();
+                validMoves.addAll(this.getChessGame().validMoves(targetPosition));
+                if (validMoves.isEmpty()) {
+                    printToTerminal("\nNo valid moves for that piece.\n");
+                    return;
+                }
+
+                highlightedSquares.clear();
+
+                for (ChessMove validMove : validMoves) {
+                    highlightedSquares.add(validMove.getEndPosition());
+                }
+
+                drawBoard();
+
+                highlightedSquares.clear();
+            }
+        }
+    }
+
+    private ChessPosition convertStringToChessPosition(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        input = input.trim().toLowerCase();
+
+        if (input.length() != 2) {
+            return null;
+        }
+
+        char file = input.charAt(0);
+        char rank = input.charAt(1);
+
+        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+            return null;
+        }
+
+        int column = file - 'a' + 1;
+        int row = rank - '0';
+
+        return new ChessPosition(row, column);
+    }
+
 
     private void showPlayerTurn() {
         printToTerminal("It is " + this.getChessGame().getTeamTurn().toString().toLowerCase() + "'s turn");
@@ -231,6 +292,7 @@ public class Menu {
                 printToTerminal("\nAvailable Commands:\n");
                 printToTerminal("draw board : db\n");
                 printToTerminal("show player turn : spt\n");
+                printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
                 printToTerminal("leave match : lm\n");
                 printToTerminal("logout : lo\n");
                 break;
@@ -424,9 +486,13 @@ public class Menu {
     }
 
     private void printSquare(chess.ChessBoard board, int row, int col) {
+        ChessPosition currentPosition = new ChessPosition(row, col);
+        boolean highlighted = highlightedSquares.contains(currentPosition);
         boolean lightSquare = (row + col) % 2 == 1;
 
-        if (lightSquare) {
+        if (highlighted) {
+            System.out.print(EscapeSequences.SET_BG_COLOR_YELLOW);
+        } else if (lightSquare) {
             System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
         } else {
             System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
