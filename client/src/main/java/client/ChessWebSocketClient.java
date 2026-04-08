@@ -57,7 +57,7 @@ public class ChessWebSocketClient {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("\n\nWebSocket Closed: " + reason + "\n\n");
+        menu.closeSocket("\n\nLost connection to game: " + reason + "\n\n");
     }
 
     public void send(String message) {

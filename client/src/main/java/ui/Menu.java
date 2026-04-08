@@ -516,6 +516,13 @@ public class Menu {
         }
     }
 
+    public void closeSocket(String reason) {
+        setState(STATE.LOGGED_IN);
+        this.setChessGame(null);
+        printToTerminal(reason);
+        printPrompt();
+    }
+
     private void printQuit () {
         printToTerminal("Thanks for playing!\n");
     }

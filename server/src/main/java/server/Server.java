@@ -54,7 +54,7 @@ public class Server {
                 });
 
                 ws.onClose(ctx -> {
-                    System.out.println("Client disconnected");
+                    webSocketService.closeConnection(ctx);
                 });
 
             });

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import exceptions.UnauthorizedException;
+import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import model.*;
@@ -92,6 +93,25 @@ public class WebSocketService {
             return PlayerRole.BLACK;
         } else {
             return PlayerRole.OBSERVER;
+        }
+    }
+
+    public void closeConnection(WsCloseContext ctx) {
+        ConnectionData connectionData = connections.remove(ctx);
+
+        if (connectionData == null) {
+            return;
+        }
+
+        int gameID = connectionData.gameID();
+
+        Set<WsContext> connections = gameConnections.get(gameID);
+        if (connections != null) {
+            connections.remove(ctx);
+
+            if (connections.isEmpty()) {
+                gameConnections.remove(gameID);
+            }
         }
     }
 }
