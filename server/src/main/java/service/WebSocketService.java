@@ -37,8 +37,45 @@ public class WebSocketService {
             case LEAVE_GAME:
                 leaveGameWS(ctx, json);
                 break;
+            case WATCH:
+                watchGameWs(ctx, json);
+                break;
         }
     }
+
+    private void watchGameWs (WsMessageContext ctx, String json) {
+        GameData gameData;
+
+        WatchGameWS watchGameWS = gson.fromJson(json, WatchGameWS.class);
+        AuthData authData = getAuthData(ctx, watchGameWS.authToken());
+
+        if (authData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        gameData = getGameData(ctx, watchGameWS.gameID());
+        if (gameData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
+
+        ConnectionData connectionData = new ConnectionData(authData.username(), watchGameWS.gameID(), playerRole);
+        connections.put(ctx, connectionData);
+        gameConnections
+                .computeIfAbsent(watchGameWS.gameID(), k -> ConcurrentHashMap.newKeySet())
+                .add(ctx);
+
+        broadcastToGame(watchGameWS.gameID(), "\n\n" + authData.username() + " joined as observer\n\n", ctx);
+        confirmJoinAsObvToPlayer(ctx, playerRole);
+    }
+
+    private void confirmJoinAsObvToPlayer (WsContext ctx, PlayerRole playerRole) {
+        ctx.send("\nYou joined the game as " + playerRole + "\n");
+    }
+
 
     private void leaveGameWS (WsMessageContext ctx, String json) {
         GameData gameData;

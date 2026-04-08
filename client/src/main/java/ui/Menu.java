@@ -207,9 +207,16 @@ public class Menu {
                 break;
             case IN_GAME:
                 printToTerminal("\nAvailable Commands:\n");
+                printToTerminal("show piece moves : spm <positionX> (ie. spm e4) db\n");
+                printToTerminal("move piece : mp <positionX> <positionY> (ie. mp e4 e5) db\n");
                 printToTerminal("draw board : db\n");
                 printToTerminal("leave match : lm\n");
-
+                printToTerminal("logout : lo\n");
+                break;
+            case WATCH_GAME:
+                printToTerminal("\nAvailable Commands:\n");
+                printToTerminal("draw board : db\n");
+                printToTerminal("leave match : lm\n");
                 printToTerminal("logout : lo\n");
                 break;
         }
@@ -241,12 +248,6 @@ public class Menu {
         setState(STATE.LOGGED_OUT);
         printToTerminal("\nYou were logged out!\n\n");
         printHelp();
-    }
-
-    public enum STATE {
-        LOGGED_IN,
-        LOGGED_OUT,
-        IN_GAME
     }
 
     private void logout() {
@@ -311,19 +312,10 @@ public class Menu {
             Matcher matcher = pattern.matcher(input);
 
             if (matcher.matches()) {
-                int clientDisplayId = Integer.parseInt(matcher.group(2));
+                String clientDisplayId = matcher.group(2);
 
-                if (gamesResponse == null) {
-                    printToTerminal("\n\nFirst List the available games\n\nPress h for commands:\n\n");
-                    return;
-                }
-                try {
-                    targetGameData = gamesResponse.games.get(clientDisplayId - 1);
-                } catch (IndexOutOfBoundsException e) {
-                    printToTerminal(String.format("\n\nCheck your game Number: %s\nPress h for commands:\n\n",
-                            clientDisplayId));
-                    return;
-                }
+                matchAndGetGame(clientDisplayId);
+
                 String colorInput = matcher.group(3).toLowerCase();
 
                 ChessGame.TeamColor color;
@@ -532,15 +524,40 @@ public class Menu {
     }
 
     private void watchGame(String input) {
-        Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
-        Matcher matcher = pattern.matcher(input);
+            Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
+            Matcher matcher = pattern.matcher(input);
 
-        if (matcher.matches()) {
-            int gameId = Integer.parseInt(matcher.group(2));
+            if (matcher.matches()) {
+                String clientDisplayId = matcher.group(2);
+                matchAndGetGame(clientDisplayId);
 
-            setState(STATE.IN_GAME);
-            drawBoard();
-            printToTerminal(String.format("\n\nObserving Game: %s\nPress h for commands:\n\n", gameId));
+                webSocketFacade = new WebSocketFacade(serverUrl, this);
+                WatchGameWS watchGameWs = new WatchGameWS(WSCommands.WATCH, getAuthToken(), targetGameData.getGameID());
+
+                try {
+                    webSocketFacade.connect(watchGameWs);
+                } catch (WebSocketConnectionException e) {
+                    printToTerminal(e.getMessage());
+                    return;
+                }
+                setState(STATE.WATCH_GAME);
+                drawBoard();
+                printToTerminal(String.format("\n\nWatching Game: %s\nPress h for commands:\n\n", clientDisplayId));
+            }
+    }
+
+    private void matchAndGetGame (String stringGameId) {
+        int clientDisplayId = Integer.parseInt(stringGameId);
+
+        if (gamesResponse == null) {
+            printToTerminal("\n\nFirst List the available games\n\nPress h for commands:\n\n");
+            return;
+        }
+        try {
+            targetGameData = gamesResponse.games.get(clientDisplayId - 1);
+        } catch (IndexOutOfBoundsException e) {
+            printToTerminal(String.format("\n\nCheck your game Number: %s\nPress h for commands:\n\n",
+                    clientDisplayId));
         }
     }
 
