@@ -140,9 +140,15 @@ public class Menu {
             drawBoard();
         } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
             watchGame(input);
+        } else if (Pattern.matches("(?i)^(spt|show\\s+player\\s+turn)$", input)) {
+            showPlayerTurn();
         } else {
             printToTerminal("Your input failed to match an option");
         }
+    }
+
+    private void showPlayerTurn() {
+        printToTerminal("It is " + this.getChessGame().getTeamTurn().toString().toLowerCase() + "'s turn");
     }
 
     private void leaveMatch() {
@@ -214,8 +220,9 @@ public class Menu {
                 break;
             case IN_GAME:
                 printToTerminal("\nAvailable Commands:\n");
-                printToTerminal("show piece moves : spm <positionX> (ie. spm e4) db\n");
-                printToTerminal("move piece : mp <positionX> <positionY> (ie. mp e4 e5) db\n");
+                printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
+                printToTerminal("move piece : mp <positionX> <positionY> (ie. mp e4 e5)\n");
+                printToTerminal("show player turn : spt\n");
                 printToTerminal("draw board : db\n");
                 printToTerminal("leave match : lm\n");
                 printToTerminal("logout : lo\n");
@@ -223,6 +230,7 @@ public class Menu {
             case WATCH_GAME:
                 printToTerminal("\nAvailable Commands:\n");
                 printToTerminal("draw board : db\n");
+                printToTerminal("show player turn : spt\n");
                 printToTerminal("leave match : lm\n");
                 printToTerminal("logout : lo\n");
                 break;
