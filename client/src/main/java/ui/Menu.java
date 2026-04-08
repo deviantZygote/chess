@@ -84,6 +84,10 @@ public class Menu {
                 case IN_GAME:
                     System.out.print("\nGAME MENU: ");
                     break;
+                case WATCH_GAME:
+                    System.out.print("\nOBSERVER MENU: ");
+                    break;
+
             }
         }
     }
@@ -100,6 +104,9 @@ public class Menu {
                     break;
                 case IN_GAME:
                     System.out.print("\nGAME MENU: ");
+                    break;
+                case WATCH_GAME:
+                    System.out.print("\nOBSERVER MENU: ");
                     break;
             }
         }
