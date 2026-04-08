@@ -48,10 +48,11 @@ public class ChessWebSocketClient {
 
     @OnMessage
     public void onMessage(String message) {
-        System.out.println("Message from server: " + message);
+        menu.printToTerminal(message);
         if (message.contains("Unauthorized")) {
             menu.handleUnauthorized();
         }
+        menu.printPrompt();
     }
 
     @OnClose

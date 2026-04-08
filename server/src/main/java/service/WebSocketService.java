@@ -69,7 +69,7 @@ public class WebSocketService {
     }
 
     private void confirmJoinToPlayer (WsContext ctx, PlayerRole playerRole) {
-        ctx.send("You joined the game as " + playerRole);
+        ctx.send("\nYou joined the game as " + playerRole + "\n");
     }
 
     private void broadcastToGame(int gameID, String message, WsContext exclude) {

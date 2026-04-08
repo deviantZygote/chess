@@ -21,6 +21,8 @@ public class Menu {
     private GetGamesResponse gamesResponse = null;
     private WebSocketFacade webSocketFacade;
     private final String serverUrl;
+    private final Object consoleLock = new Object();
+
 
 
 
@@ -62,16 +64,22 @@ public class Menu {
         return this.state;
     }
 
+    public void printToTerminal(String message) {
+        synchronized (consoleLock) {
+            System.out.print(message);
+        }
+    }
+
     public void printPrompt() {
         switch (this.getState()) {
             case LOGGED_OUT:
-                System.out.print("\nSTART MENU: ");
+                printToTerminal("\nSTART MENU: ");
                 break;
             case LOGGED_IN:
-                System.out.print("\nGAME BROWSER: ");
+                printToTerminal("\nGAME BROWSER: ");
                 break;
             case IN_GAME:
-                System.out.print("\nGAME MENU: ");
+                printToTerminal("\nGAME MENU: ");
                 break;
         }
     }
@@ -101,37 +109,37 @@ public class Menu {
         } else if (Pattern.matches("(?i)^(lg|leave\\s+game)$", input)) {
             this.setState(STATE.LOGGED_IN);
             this.setTeamColor(null);
-            System.out.print("\n\nLeaving game\n\n");
+            printToTerminal("\n\nLeaving game\n\n");
         } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
             drawBoard();
         } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
             watchGame(input);
         } else {
-            System.out.println("Your input failed to match an option");
+            printToTerminal("Your input failed to match an option");
         }
     }
 
     private void register() {
 
-        System.out.println("Enter your email");
+        printToTerminal("Enter your email");
         String email = scanner.nextLine();
 
-        System.out.println("Enter a new username");
+        printToTerminal("Enter a new username");
         String username = scanner.nextLine();
 
 
         String password = "";
         String confirmPassword = "";
         do {
-            System.out.println("Enter a new password");
+            printToTerminal("Enter a new password");
             password = scanner.nextLine();
-            System.out.println("re-enter your password");
+            printToTerminal("re-enter your password");
             confirmPassword = scanner.nextLine();
 
             if (!confirmPassword.equals(password) ||
                     password.isEmpty() ||
                     confirmPassword.isEmpty()) {
-                System.out.println("Your passwords aren't matching or are empty.\nTry again.\n");
+                printToTerminal("Your passwords aren't matching or are empty.\nTry again.\n");
             }
         } while (!confirmPassword.equals(password) ||
                 password.isEmpty() ||
@@ -143,44 +151,46 @@ public class Menu {
             RegisterResponse registerResponse = this.serverFacade.register(registerRequest);
             setAuthToken(registerResponse.authToken);
             setState(STATE.LOGGED_IN);
-            System.out.printf("\nHello %s. You are registered and logged in.\n\nType help for options\n\n", username);
+            printToTerminal(String.format
+                    ("\nHello %s. You are registered and logged in.\n\nType help for options\n\n",
+                    username));
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
     }
 
     private void printHelp () {
         switch (this.state) {
             case LOGGED_OUT:
-                System.out.println("Available Commands:");
-                System.out.println("help : h");
-                System.out.println("quit : q");
-                System.out.println("login : li");
-                System.out.println("register : r");
+                printToTerminal("\nAvailable Commands:\n");
+                printToTerminal("help : h\n");
+                printToTerminal("quit : q\n");
+                printToTerminal("login : li\n");
+                printToTerminal("register : r\n");
                 break;
             case LOGGED_IN:
-                System.out.println("Available Commands:");
-                System.out.println("help : h");
-                System.out.println("logout : lo");
-                System.out.println("create game : cg <gameName>");
-                System.out.println("list games : lg");
-                System.out.println("join game : jg <gameId> <color|c>");
-                System.out.println("watch game : wg <gameId>");
+                printToTerminal("\nAvailable Commands:\n");
+                printToTerminal("help : h\n");
+                printToTerminal("logout : lo\n");
+                printToTerminal("create game : cg <gameName>\n");
+                printToTerminal("list games : lg\n");
+                printToTerminal("join game : jg <gameId> <color|c>\n");
+                printToTerminal("watch game : wg <gameId>\n");
                 break;
             case IN_GAME:
-                System.out.println("Available Commands:");
-                System.out.println("draw board : db");
-                System.out.println("game browser : gb");
-                System.out.println("logout : lo");
+                printToTerminal("\nAvailable Commands:\n");
+                printToTerminal("draw board : db\n");
+                printToTerminal("game browser : gb\n");
+                printToTerminal("logout : lo\n");
                 break;
         }
 
     }
 
     private void login() {
-        System.out.println("Enter your username");
+        printToTerminal("Enter your username\n");
         String username = scanner.nextLine();
-        System.out.println("Enter your password");
+        printToTerminal("Enter your password\n");
         String password = scanner.nextLine();
 
         LoginRequest loginRequest = new LoginRequest(username, password);
@@ -189,16 +199,18 @@ public class Menu {
             LoginResponse loginResponse = this.serverFacade.login(loginRequest);
             setAuthToken(loginResponse.authToken);
             setState(STATE.LOGGED_IN);
-            System.out.printf("\nHello %s you're logged in.\n\nType help for options\n\n", username);
+            printToTerminal(String.format
+                    ("\nHello %s you're logged in.\n\nType help for options\n\n",
+                    username));
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
     }
 
     public void handleUnauthorized() {
         setAuthToken(null);
         setState(STATE.LOGGED_OUT);
-        System.out.println("\nYou were logged out!\n\n");
+        printToTerminal("\nYou were logged out!\n\n");
         printHelp();
     }
 
@@ -214,9 +226,9 @@ public class Menu {
             setAuthToken("");
             setState(STATE.LOGGED_OUT);
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
-        System.out.print("\nGoodbye, you're logged out.\n\nType help for options\n\n");
+        printToTerminal("\nGoodbye, you're logged out.\n\nType help for options\n\n");
     }
 
     private void createGame(String input) {
@@ -226,15 +238,15 @@ public class Menu {
             if (args.length > 2) {
                 gameName = args[2];
             } else if (args.length == 1) {
-                System.out.print("\n\nYou don't have a game name specified, try again.\n\n");
+                printToTerminal("\n\nYou don't have a game name specified, try again.\n\n");
             } else if (args.length == 2) {
                 gameName = args[1];
             }
             CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
             this.serverFacade.createGame(createGameRequest, this.getAuthToken());
-            System.out.printf("\nGame %s created\n\n",gameName);
+            printToTerminal(String.format("\nGame %s created\n\n",gameName));
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
     }
 
@@ -244,23 +256,23 @@ public class Menu {
             int gameNumber = 0;
             for (GameData game : this.gamesResponse.games) {
                 gameNumber++;
-                System.out.printf("\nGame ID: %s\n", gameNumber);
-                System.out.printf("Game Name: %s\n", game.getGameName());
+                printToTerminal(String.format("\nGame ID: %s\n", gameNumber));
+                printToTerminal(String.format("Game Name: %s\n", game.getGameName()));
 
                 if (game.getWhiteUsername() == null) {
-                    System.out.print("White Player: OPEN\n");
+                    printToTerminal("White Player: OPEN\n");
                 } else {
-                    System.out.printf("White Player: %s\n", game.getWhiteUsername());
+                    printToTerminal(String.format("White Player: %s\n", game.getWhiteUsername()));
                 }
 
                 if (game.getBlackUsername() == null) {
-                    System.out.print("Black Player: OPEN\n");
+                    printToTerminal("Black Player: OPEN\n");
                 } else {
-                    System.out.printf("Black Player: %s\n", game.getBlackUsername());
+                    printToTerminal(String.format("Black Player: %s\n", game.getBlackUsername()));
                 }
             }
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
     }
 
@@ -274,13 +286,14 @@ public class Menu {
 
                 GameData targetGameData = null;
                 if (gamesResponse == null) {
-                    System.out.println("\n\nFirst List the available games\n\nPress h for commands:\n\n");
+                    printToTerminal("\n\nFirst List the available games\n\nPress h for commands:\n\n");
                     return;
                 }
                 try {
                     targetGameData = gamesResponse.games.get(clientDisplayId - 1);
                 } catch (IndexOutOfBoundsException e) {
-                    System.out.printf("\n\nCheck your game Number: %s\nPress h for commands:\n\n", clientDisplayId);
+                    printToTerminal(String.format("\n\nCheck your game Number: %s\nPress h for commands:\n\n",
+                            clientDisplayId));
                     return;
                 }
                 String colorInput = matcher.group(3).toLowerCase();
@@ -302,18 +315,18 @@ public class Menu {
                 try {
                     webSocketFacade.connect(joinGameWs);
                 } catch (WebSocketConnectionException e) {
-                    System.out.println(e.getMessage());
+                    printToTerminal(e.getMessage());
                     return;
                 }
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);
                 drawBoard();
-                System.out.printf("\n\nJoined Game: %s\nPress h for commands:\n\n", clientDisplayId);
+                printToTerminal(String.format("\n\nJoined Game: %s\nPress h for commands:\n\n", clientDisplayId));
             }
 
         } catch (ResponseException e) {
-            System.out.println(e.getMessage());
+            printToTerminal(e.getMessage());
         }
     }
 
@@ -499,11 +512,11 @@ public class Menu {
 
             setState(STATE.IN_GAME);
             drawBoard();
-            System.out.printf("\n\nObserving Game: %s\nPress h for commands:\n\n", gameId);
+            printToTerminal(String.format("\n\nObserving Game: %s\nPress h for commands:\n\n", gameId));
         }
     }
 
     private void printQuit () {
-        System.out.println("Thanks for playing!\n");
+        printToTerminal("Thanks for playing!\n");
     }
 }
