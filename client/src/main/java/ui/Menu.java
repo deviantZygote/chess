@@ -71,16 +71,35 @@ public class Menu {
     }
 
     public void printPrompt() {
-        switch (this.getState()) {
-            case LOGGED_OUT:
-                printToTerminal("\nSTART MENU: ");
-                break;
-            case LOGGED_IN:
-                printToTerminal("\nGAME BROWSER: ");
-                break;
-            case IN_GAME:
-                printToTerminal("\nGAME MENU: ");
-                break;
+        synchronized (consoleLock) {
+            switch (this.getState()) {
+                case LOGGED_OUT:
+                    System.out.print("\nSTART MENU: ");
+                    break;
+                case LOGGED_IN:
+                    System.out.print("\nGAME BROWSER: ");
+                    break;
+                case IN_GAME:
+                    System.out.print("\nGAME MENU: ");
+                    break;
+            }
+        }
+    }
+
+    public void printAsyncMessage(String message) {
+        synchronized (consoleLock) {
+            System.out.print("\n" + message);
+            switch (this.getState()) {
+                case LOGGED_OUT:
+                    System.out.print("\nSTART MENU: ");
+                    break;
+                case LOGGED_IN:
+                    System.out.print("\nGAME BROWSER: ");
+                    break;
+                case IN_GAME:
+                    System.out.print("\nGAME MENU: ");
+                    break;
+            }
         }
     }
 
@@ -121,19 +140,19 @@ public class Menu {
 
     private void register() {
 
-        printToTerminal("Enter your email");
+        printToTerminal("Enter your email\n");
         String email = scanner.nextLine();
 
-        printToTerminal("Enter a new username");
+        printToTerminal("Enter a new username\n");
         String username = scanner.nextLine();
 
 
         String password = "";
         String confirmPassword = "";
         do {
-            printToTerminal("Enter a new password");
+            printToTerminal("Enter a new password\n");
             password = scanner.nextLine();
-            printToTerminal("re-enter your password");
+            printToTerminal("re-enter your password\n");
             confirmPassword = scanner.nextLine();
 
             if (!confirmPassword.equals(password) ||

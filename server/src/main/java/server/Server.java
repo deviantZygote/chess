@@ -9,8 +9,12 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
-
+        javalin = Javalin.create(config -> {
+            config.staticFiles.add("web");
+            config.jetty.modifyWebSocketServletFactory(factory -> {
+                factory.setIdleTimeout(java.time.Duration.ofMinutes(5));
+            });
+        });
         try {
             DataAccess dataAccess = new DatabaseDataAccess();
 

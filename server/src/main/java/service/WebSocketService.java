@@ -64,7 +64,7 @@ public class WebSocketService {
                     .computeIfAbsent(joinGameWS.gameID(), k -> ConcurrentHashMap.newKeySet())
                     .add(ctx);
 
-            broadcastToGame(joinGameWS.gameID(), authData.username() + " joined as " + playerRole, ctx);
+            broadcastToGame(joinGameWS.gameID(), "\n\n" + authData.username() + " joined as " + playerRole + "\n\n", ctx);
             confirmJoinToPlayer(ctx, playerRole);
         }
     }

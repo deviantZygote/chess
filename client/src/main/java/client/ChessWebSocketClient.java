@@ -48,16 +48,15 @@ public class ChessWebSocketClient {
 
     @OnMessage
     public void onMessage(String message) {
-        menu.printToTerminal(message);
+        menu.printAsyncMessage(message);
         if (message.contains("Unauthorized")) {
             menu.handleUnauthorized();
         }
-        menu.printPrompt();
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        menu.closeSocket("\n\nLost connection to game: " + reason + "\n\n");
+        menu.closeSocket("\n\nLost connection to game: " + reason + "\n");
     }
 
     public void send(String message) {
