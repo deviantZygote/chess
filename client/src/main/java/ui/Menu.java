@@ -332,11 +332,16 @@ public class Menu {
     }
 
     private void leaveMatch() {
-        LeaveGameWS leaveGameWs = new LeaveGameWS(WSCommands.LEAVE_GAME, getAuthToken(), targetGameData.getGameID());
+        LeaveWS leaveWS = new LeaveWS(
+                UserGameCommand.CommandType.LEAVE,
+                getAuthToken(),
+                targetGameData.getGameID()
+        );
 
-        webSocketFacade.send(leaveGameWs);
+        webSocketFacade.send(leaveWS);
         this.setState(STATE.LOGGED_IN);
         this.setTeamColor(null);
+        this.setChessGame(null);
         printToTerminal("\n\nLeaving match\n\n");
     }
 
