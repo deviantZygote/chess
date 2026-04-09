@@ -12,24 +12,24 @@ public class ChessWebSocketClient {
     private Session session;
     private String authToken = "";
     private int gameID = -1;
-    private WSCommands joinRole = null;
+    private UserGameCommand.CommandType commandType;
     private Gson gson = null;
     Menu menu = null;
 
-    public ChessWebSocketClient (ConnectGameWS connectGameWS, Menu menu) {
-        setGameID(connectGameWS.gameID());
-        setAuthToken(connectGameWS.authToken());
-        setJoinRole(connectGameWS.commandType());
+    public ChessWebSocketClient(ConnectWS connectWS, Menu menu) {
+        setGameID(connectWS.gameID());
+        setAuthToken(connectWS.authToken());
+        setCommandType(connectWS.commandType());
         this.gson = new Gson();
         this.menu = menu;
     }
 
-    public void setJoinRole(WSCommands joinRole) {
-        this.joinRole = joinRole;
+    public void setCommandType(UserGameCommand.CommandType commandType) {
+        this.commandType = commandType;
     }
 
-    public WSCommands getJoinRole () {
-        return this.joinRole;
+    public UserGameCommand.CommandType getCommandType () {
+        return this.commandType;
     }
 
     public String getAuthToken() {
@@ -51,13 +51,14 @@ public class ChessWebSocketClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        if (getJoinRole() == WSCommands.JOIN_GAME) {
-            JoinGameWS joinGameWS = new JoinGameWS(WSCommands.JOIN_GAME, this.getAuthToken(), getGameID());
-            send(joinGameWS);
-        } else /* watch */ {
-            WatchGameWS watchGameWS = new WatchGameWS(WSCommands.WATCH, this.getAuthToken(), getGameID());
-            send(watchGameWS);
-        }
+
+        ConnectWS connectWS = new ConnectWS(
+                this.getCommandType(),
+                this.getAuthToken(),
+                this.getGameID()
+        );
+
+        send(connectWS);
     }
 
     @OnMessage

@@ -74,6 +74,7 @@ public class Menu {
     public void updateGame(ChessGame chessGame) {
         synchronized (consoleLock) {
             setChessGame(chessGame);
+            printToTerminal("\n");
             drawBoard();
             printPrompt();
         }
@@ -262,7 +263,7 @@ public class Menu {
         }
 
         MakeMoveWS makeMoveWS = new MakeMoveWS(
-                WSCommands.MAKE_MOVE,
+                UserGameCommand.CommandType.MAKE_MOVE,
                 getAuthToken(),
                 targetGameData.getGameID(),
                 selectedMove
@@ -525,10 +526,14 @@ public class Menu {
                 serverFacade.joinGame(request, getAuthToken());
 
                 webSocketFacade = new WebSocketFacade(serverUrl, this);
-                JoinGameWS joinGameWs = new JoinGameWS(WSCommands.JOIN_GAME, getAuthToken(), targetGameData.getGameID());
+                ConnectWS connectWS = new ConnectWS(
+                        UserGameCommand.CommandType.CONNECT,
+                        getAuthToken(),
+                        targetGameData.getGameID()
+                );
 
                 try {
-                    webSocketFacade.connect(joinGameWs);
+                    webSocketFacade.connect(connectWS);
                 } catch (WebSocketConnectionException e) {
                     printToTerminal(e.getMessage());
                     return;
@@ -536,8 +541,7 @@ public class Menu {
 
                 setState(STATE.IN_GAME);
                 setTeamColor(color);
-                drawBoard();
-                printToTerminal(String.format("\n\nJoined Game: %s\nPress h for commands:\n\n", clientDisplayId));
+                printToTerminal(String.format("Joined Game: %s\nPress h for commands:\n\n", clientDisplayId));
             }
 
         } catch (ResponseException e) {
@@ -559,7 +563,6 @@ public class Menu {
 
     private void drawWhiteOrientation() {
         var board = getChessGame().getBoard();
-
         System.out.print(EscapeSequences.ERASE_SCREEN);
 
         printColumnHeadersWhite();
@@ -725,26 +728,30 @@ public class Menu {
     }
 
     private void watchGame(String input) {
-            Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
-            Matcher matcher = pattern.matcher(input);
+        Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
+        Matcher matcher = pattern.matcher(input);
 
-            if (matcher.matches()) {
-                String clientDisplayId = matcher.group(2);
-                matchAndGetGame(clientDisplayId);
+        if (matcher.matches()) {
+            String clientDisplayId = matcher.group(2);
+            matchAndGetGame(clientDisplayId);
 
-                webSocketFacade = new WebSocketFacade(serverUrl, this);
-                WatchGameWS watchGameWs = new WatchGameWS(WSCommands.WATCH, getAuthToken(), targetGameData.getGameID());
+            webSocketFacade = new WebSocketFacade(serverUrl, this);
+            ConnectWS connectWS = new ConnectWS(
+                    UserGameCommand.CommandType.CONNECT,
+                    getAuthToken(),
+                    targetGameData.getGameID()
+            );
 
-                try {
-                    webSocketFacade.connect(watchGameWs);
-                } catch (WebSocketConnectionException e) {
-                    printToTerminal(e.getMessage());
-                    return;
-                }
-                setState(STATE.WATCH_GAME);
-                drawBoard();
-                printToTerminal(String.format("\n\nWatching Game: %s\nPress h for commands:\n\n", clientDisplayId));
+            try {
+                webSocketFacade.connect(connectWS);
+            } catch (WebSocketConnectionException e) {
+                printToTerminal(e.getMessage());
+                return;
             }
+
+            setState(STATE.WATCH_GAME);
+            printToTerminal(String.format("\n\nWatching Game: %s\nPress h for commands:\n\n", clientDisplayId));
+        }
     }
 
     private void matchAndGetGame (String stringGameId) {

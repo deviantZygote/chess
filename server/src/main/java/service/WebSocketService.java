@@ -136,7 +136,6 @@ public class WebSocketService {
                 authData.username()
         );
 
-        sendNotification(ctx, "You left the game");
         ctx.closeSession();
     }
 

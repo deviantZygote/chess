@@ -3,6 +3,7 @@ package client;
 import jakarta.websocket.ContainerProvider;
 import jakarta.websocket.WebSocketContainer;
 import model.ConnectGameWS;
+import model.ConnectWS;
 import model.JoinGameWS;
 import ui.Menu;
 
@@ -21,10 +22,10 @@ public class WebSocketFacade {
         this.menu = menu;
     }
 
-    public void connect (ConnectGameWS connectGameWS) throws WebSocketConnectionException {
+    public void connect(ConnectWS connectWS) throws WebSocketConnectionException {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            client = new ChessWebSocketClient(connectGameWS, menu);
+            client = new ChessWebSocketClient(connectWS, menu);
             container.connectToServer(client, URI.create(webSocketUrl));
 
         } catch (Exception e) {
