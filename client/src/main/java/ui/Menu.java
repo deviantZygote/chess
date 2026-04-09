@@ -94,41 +94,14 @@ public class Menu {
 
     public void printPrompt() {
         synchronized (consoleLock) {
-            switch (this.getState()) {
-                case LOGGED_OUT:
-                    System.out.print("\nSTART MENU: ");
-                    break;
-                case LOGGED_IN:
-                    System.out.print("\nGAME BROWSER: ");
-                    break;
-                case IN_GAME:
-                    System.out.print("\nGAME MENU: ");
-                    break;
-                case WATCH_GAME:
-                    System.out.print("\nOBSERVER MENU: ");
-                    break;
-
-            }
+            menuHelpers.printPromptText(this.getState());
         }
     }
 
     public void printAsyncMessage(String message) {
         synchronized (consoleLock) {
             System.out.print("\n" + message);
-            switch (this.getState()) {
-                case LOGGED_OUT:
-                    System.out.print("\nSTART MENU: ");
-                    break;
-                case LOGGED_IN:
-                    System.out.print("\nGAME BROWSER: ");
-                    break;
-                case IN_GAME:
-                    System.out.print("\nGAME MENU: ");
-                    break;
-                case WATCH_GAME:
-                    System.out.print("\nOBSERVER MENU: ");
-                    break;
-            }
+            menuHelpers.printPromptText(this.getState());
         }
     }
 

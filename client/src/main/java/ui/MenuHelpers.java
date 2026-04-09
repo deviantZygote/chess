@@ -137,4 +137,21 @@ public class MenuHelpers {
 
         return password;
     }
+
+    public void printPromptText (STATE state) {
+        switch (state) {
+            case LOGGED_OUT:
+                System.out.print("\nSTART MENU: ");
+                break;
+            case LOGGED_IN:
+                System.out.print("\nGAME BROWSER: ");
+                break;
+            case IN_GAME:
+                System.out.print("\nGAME MENU: ");
+                break;
+            case WATCH_GAME:
+                System.out.print("\nOBSERVER MENU: ");
+                break;
+        }
+    }
 }
