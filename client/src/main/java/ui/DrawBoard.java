@@ -60,10 +60,10 @@ public class DrawBoard {
         setPlayerColor(playerColor);
         setHighlightedSquares(highlightedSquares);
 
-        if (playerColor == ChessGame.TeamColor.WHITE) {
-            drawWhiteOrientation();
-        } else {
+        if (playerColor == ChessGame.TeamColor.BLACK) {
             drawBlackOrientation();
+        } else {
+            drawWhiteOrientation();
         }
     }
 

@@ -302,15 +302,27 @@ public class WebSocketService {
         broadcastToGame(gameData.getGameID(), moveMessage, authData.username());
 
         if (gameData.getChessGame().isInCheckmate(currentTurn)) {
+            String checkmateUser = "";
+            if (currentTurn == ChessGame.TeamColor.WHITE) {
+                checkmateUser = gameData.getBlackUsername();
+            } else {
+                checkmateUser = gameData.getWhiteUsername();
+            }
             broadcastToGame(
                     gameData.getGameID(),
-                    currentTurn.toString().toLowerCase() + " is in checkmate",
+                    checkmateUser + " is in checkmate",
                     null
             );
         } else if (gameData.getChessGame().isInCheck(currentTurn)) {
+            String checkUser = "";
+            if (currentTurn == ChessGame.TeamColor.WHITE) {
+                checkUser = gameData.getBlackUsername();
+            } else {
+                checkUser = gameData.getWhiteUsername();
+            }
             broadcastToGame(
                     gameData.getGameID(),
-                    currentTurn.toString().toLowerCase() + " is in check",
+                    checkUser + " is in check",
                     null
             );
         }

@@ -92,6 +92,9 @@ public class ChessGame {
 
         // getPiece
         piece = this.board.getPiece(startPosition);
+        if (piece == null) {
+            return null;
+        }
         pieceMoves.addAll(piece.pieceMoves(this.getBoard(), startPosition));
 
         for (ChessMove pieceMove : pieceMoves ) {

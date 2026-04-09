@@ -212,7 +212,12 @@ public class Menu {
                 printToTerminal("\n" + stringPosition + " not a valid position.\nTry again\n");
             } else {
                 Collection<ChessMove> validMoves = new ArrayList<>();
-                validMoves.addAll(this.getChessGame().validMoves(targetPosition));
+                try {
+                    validMoves.addAll(this.getChessGame().validMoves(targetPosition));
+                } catch (NullPointerException e) {
+                    printToTerminal("\nNo valid moves for that piece or place.\n");
+                    return;
+                }
                 if (validMoves.isEmpty()) {
                     printToTerminal("\nNo valid moves for that piece.\n");
                     return;
@@ -419,6 +424,10 @@ public class Menu {
             menuHelpers.matchAndGetGame(clientDisplayId, this.gamesResponse, this);
 
             webSocketFacade = new WebSocketFacade(serverUrl, this);
+            if (getTargetGameData() == null) {
+                printToTerminal("That's not a valid game number");
+                return;
+            }
             ConnectCommand connectCommand = new ConnectCommand(
                     getAuthToken(),
                     targetGameData.getGameID()
