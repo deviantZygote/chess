@@ -28,8 +28,18 @@ public class Menu {
     private WebSocketFacade webSocketFacade;
     private final String serverUrl;
     private final Object consoleLock = new Object();
+
+    public GameData getTargetGameData() {
+        return targetGameData;
+    }
+
+    public void setTargetGameData(GameData targetGameData) {
+        this.targetGameData = targetGameData;
+    }
+
     private GameData targetGameData = null;
     private Set<ChessPosition> highlightedSquares = new HashSet<>();
+    private final MenuHelpers menuHelpers = new MenuHelpers();
 
 
 
@@ -174,29 +184,14 @@ public class Menu {
         ChessPosition start = convertStringToChessPosition(matcher.group(2));
         ChessPosition end = convertStringToChessPosition(matcher.group(3));
 
-        if (start == null || end == null) {
-            printToTerminal("\nInvalid coordinates.\n");
-            return;
-        }
-
-        if (this.getTeamColor() == null) {
-            printToTerminal("\nObservers can't make moves.\n");
-            return;
-        }
-
-        if (this.getTeamColor() != this.getChessGame().getTeamTurn()) {
-            printToTerminal("\nIt's not your turn. Please wait.\n");
-            return;
-        }
-
-        ChessPiece chessPiece = this.getChessGame().getBoard().getPiece(start);
-        if (chessPiece == null) {
-            printToTerminal("\nNo piece at that position.\n");
-            return;
-        }
-
-        if (chessPiece.getTeamColor() != this.getTeamColor()) {
-            printToTerminal("\nYou can only move your own pieces.\n");
+        if (!menuHelpers.makeMoveDataValidation(
+                start,
+                end,
+                this.getTeamColor(),
+                this.getChessGame().getTeamTurn(),
+                this.getChessGame().getBoard().getPiece(start),
+                this
+        )) {
             return;
         }
 
@@ -510,7 +505,7 @@ public class Menu {
             if (matcher.matches()) {
                 String clientDisplayId = matcher.group(2);
 
-                matchAndGetGame(clientDisplayId);
+                menuHelpers.matchAndGetGame(clientDisplayId, this.gamesResponse, this);
 
                 String colorInput = matcher.group(3).toLowerCase();
 
@@ -558,7 +553,7 @@ public class Menu {
 
         if (matcher.matches()) {
             String clientDisplayId = matcher.group(2);
-            matchAndGetGame(clientDisplayId);
+            menuHelpers.matchAndGetGame(clientDisplayId, this.gamesResponse, this);
 
             webSocketFacade = new WebSocketFacade(serverUrl, this);
             ConnectCommand connectCommand = new ConnectCommand(
@@ -578,21 +573,6 @@ public class Menu {
         }
     }
 
-    private void matchAndGetGame (String stringGameId) {
-        int clientDisplayId = Integer.parseInt(stringGameId);
-
-        if (gamesResponse == null) {
-            printToTerminal("\n\nFirst List the available games\n\nPress h for commands:\n\n");
-            return;
-        }
-        try {
-            targetGameData = gamesResponse.games.get(clientDisplayId - 1);
-            setChessGame(targetGameData.getChessGame());
-        } catch (IndexOutOfBoundsException e) {
-            printToTerminal(String.format("\n\nCheck your game Number: %s\nPress h for commands:\n\n",
-                    clientDisplayId));
-        }
-    }
 
     public void closeSocket(String reason) {
         setState(STATE.LOGGED_IN);
