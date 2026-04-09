@@ -9,6 +9,9 @@ import client.ServerFacade;
 import client.WebSocketConnectionException;
 import client.WebSocketFacade;
 import model.*;
+import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveCommand;
+import websocket.commands.MakeMoveCommand;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -263,14 +266,13 @@ public class Menu {
             }
         }
 
-        MakeMoveWS makeMoveWS = new MakeMoveWS(
-                UserGameCommand.CommandType.MAKE_MOVE,
+        MakeMoveCommand makeMoveCommand = new MakeMoveCommand(
                 getAuthToken(),
                 targetGameData.getGameID(),
                 selectedMove
         );
 
-        webSocketFacade.send(makeMoveWS);
+        webSocketFacade.send(makeMoveCommand);
     }
 
     private void showPieceMoves(String input) {
@@ -333,13 +335,12 @@ public class Menu {
     }
 
     private void leaveMatch() {
-        LeaveWS leaveWS = new LeaveWS(
-                UserGameCommand.CommandType.LEAVE,
+        LeaveCommand leaveCommand = new LeaveCommand(
                 getAuthToken(),
                 targetGameData.getGameID()
         );
 
-        webSocketFacade.send(leaveWS);
+        webSocketFacade.send(leaveCommand);
         this.setState(STATE.LOGGED_IN);
         this.setTeamColor(null);
         this.setChessGame(null);
@@ -532,14 +533,13 @@ public class Menu {
                 serverFacade.joinGame(request, getAuthToken());
 
                 webSocketFacade = new WebSocketFacade(serverUrl, this);
-                ConnectWS connectWS = new ConnectWS(
-                        UserGameCommand.CommandType.CONNECT,
+                ConnectCommand connectCommand = new ConnectCommand(
                         getAuthToken(),
                         targetGameData.getGameID()
                 );
 
                 try {
-                    webSocketFacade.connect(connectWS);
+                    webSocketFacade.connect(connectCommand);
                 } catch (WebSocketConnectionException e) {
                     printToTerminal(e.getMessage());
                     return;
@@ -742,14 +742,13 @@ public class Menu {
             matchAndGetGame(clientDisplayId);
 
             webSocketFacade = new WebSocketFacade(serverUrl, this);
-            ConnectWS connectWS = new ConnectWS(
-                    UserGameCommand.CommandType.CONNECT,
+            ConnectCommand connectCommand = new ConnectCommand(
                     getAuthToken(),
                     targetGameData.getGameID()
             );
 
             try {
-                webSocketFacade.connect(connectWS);
+                webSocketFacade.connect(connectCommand);
             } catch (WebSocketConnectionException e) {
                 printToTerminal(e.getMessage());
                 return;

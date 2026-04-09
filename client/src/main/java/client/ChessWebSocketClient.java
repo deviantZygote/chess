@@ -5,6 +5,11 @@ import model.*;
 
 import com.google.gson.Gson;
 import ui.Menu;
+import websocket.commands.ConnectCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 @ClientEndpoint
 public class ChessWebSocketClient {
@@ -12,24 +17,14 @@ public class ChessWebSocketClient {
     private Session session;
     private String authToken = "";
     private int gameID = -1;
-    private UserGameCommand.CommandType commandType;
     private Gson gson = null;
     Menu menu = null;
 
-    public ChessWebSocketClient(ConnectWS connectWS, Menu menu) {
-        setGameID(connectWS.gameID());
-        setAuthToken(connectWS.authToken());
-        setCommandType(connectWS.commandType());
+    public ChessWebSocketClient(ConnectCommand connectCommand, Menu menu) {
+        setGameID(connectCommand.getGameID());
+        setAuthToken(connectCommand.getAuthToken());
         this.gson = new Gson();
         this.menu = menu;
-    }
-
-    public void setCommandType(UserGameCommand.CommandType commandType) {
-        this.commandType = commandType;
-    }
-
-    public UserGameCommand.CommandType getCommandType () {
-        return this.commandType;
     }
 
     public String getAuthToken() {
@@ -52,39 +47,38 @@ public class ChessWebSocketClient {
     public void onOpen(Session session) {
         this.session = session;
 
-        ConnectWS connectWS = new ConnectWS(
-                this.getCommandType(),
+        ConnectCommand connectCommand = new ConnectCommand(
                 this.getAuthToken(),
                 this.getGameID()
         );
 
-        send(connectWS);
+        send(connectCommand);
     }
 
     @OnMessage
     public void onMessage(String message) {
         ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
 
-        if (serverMessage == null || serverMessage.serverMessageType() == null) {
+        if (serverMessage == null || serverMessage.getServerMessageType() == null) {
             menu.printAsyncMessage(message);
             return;
         }
 
-        switch (serverMessage.serverMessageType()) {
+        switch (serverMessage.getServerMessageType()) {
             case LOAD_GAME:
-                LoadGameWS loadGameWS = gson.fromJson(message, LoadGameWS.class);
-                menu.updateGame(loadGameWS.game());
+                LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
+                menu.updateGame(loadGameMessage.getGame());
                 break;
             case ERROR:
-                ErrorWS errorWS = gson.fromJson(message, ErrorWS.class);
-                menu.printAsyncMessage(errorWS.errorMessage());
-                if (errorWS.errorMessage().contains("Unauthorized")) {
+                ErrorMessage errorMessage = gson.fromJson(message, ErrorMessage.class);
+                menu.printAsyncMessage(errorMessage.getErrorMessage());
+                if (errorMessage.getErrorMessage().contains("Unauthorized")) {
                     menu.handleUnauthorized();
                 }
                 break;
             case NOTIFICATION:
-                NotificationWS notificationWS = gson.fromJson(message, NotificationWS.class);
-                menu.printAsyncMessage(notificationWS.message());
+                NotificationMessage notificationMessage = gson.fromJson(message, NotificationMessage.class);
+                menu.printAsyncMessage(notificationMessage.getMessage());
                 break;
         }
     }

@@ -1,6 +1,0 @@
-package model;
-
-public record NotificationWS(
-        ServerMessage.ServerMessageType serverMessageType,
-        String message
-) {}

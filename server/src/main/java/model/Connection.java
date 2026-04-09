@@ -15,8 +15,12 @@ public class Connection {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Connection that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Connection that)) {
+            return false;
+        }
         return Objects.equals(username, that.username) &&
                 Objects.equals(ws, that.ws);
     }

@@ -12,6 +12,11 @@ import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import model.*;
+import websocket.commands.*;
+import websocket.commands.MakeMoveCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import java.util.Collection;
 import java.util.Map;
@@ -34,12 +39,12 @@ public class WebSocketService {
         String json = ctx.message();
         UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
 
-        if (command == null || command.commandType() == null) {
+        if (command == null || command.getCommandType() == null) {
             sendError(ctx, "Error: bad request");
             return;
         }
 
-        switch (command.commandType()) {
+        switch (command.getCommandType()) {
             case CONNECT:
                 connectWS(ctx, json);
                 break;
@@ -59,39 +64,30 @@ public class WebSocketService {
     }
 
     private void sendNotification(WsContext ctx, String message) {
-        NotificationWS notificationWS = new NotificationWS(
-                ServerMessage.ServerMessageType.NOTIFICATION,
-                message
-        );
-        ctx.send(gson.toJson(notificationWS));
+        NotificationMessage notificationMessage = new NotificationMessage(message);
+        ctx.send(gson.toJson(notificationMessage));
     }
 
     private void sendLoadGame(WsContext ctx, ChessGame game) {
-        LoadGameWS loadGameWS = new LoadGameWS(
-                ServerMessage.ServerMessageType.LOAD_GAME,
-                game
-        );
-        ctx.send(gson.toJson(loadGameWS));
+        LoadGameMessage loadGameMessage = new LoadGameMessage(game);
+        ctx.send(gson.toJson(loadGameMessage));
     }
 
     private void sendError(WsContext ctx, String errorMessage) {
-        ErrorWS errorWS = new ErrorWS(
-                ServerMessage.ServerMessageType.ERROR,
-                errorMessage
-        );
+        ErrorMessage errorWS = new ErrorMessage(errorMessage);
         ctx.send(gson.toJson(errorWS));
     }
 
     private void connectWS(WsMessageContext ctx, String json) {
         UserGameCommand connectCommand = gson.fromJson(json, UserGameCommand.class);
 
-        AuthData authData = getAuthData(ctx, connectCommand.authToken());
+        AuthData authData = getAuthData(ctx, connectCommand.getAuthToken());
         if (authData == null) {
             ctx.closeSession();
             return;
         }
 
-        GameData gameData = getGameData(ctx, connectCommand.gameID());
+        GameData gameData = getGameData(ctx, connectCommand.getGameID());
         if (gameData == null) {
             ctx.closeSession();
             return;
@@ -100,16 +96,16 @@ public class WebSocketService {
         PlayerRole playerRole = getPlayerRole(gameData, authData.username());
 
         ConnectionData connectionData =
-                new ConnectionData(authData.username(), connectCommand.gameID(), playerRole);
+                new ConnectionData(authData.username(), connectCommand.getGameID(), playerRole);
 
         connections.put(ctx, connectionData);
         gameConnections
-                .computeIfAbsent(connectCommand.gameID(), k -> ConcurrentHashMap.newKeySet())
+                .computeIfAbsent(connectCommand.getGameID(), k -> ConcurrentHashMap.newKeySet())
                 .add(new Connection(authData.username(), ctx));
 
         sendLoadGame(ctx, gameData.getChessGame());
         broadcastToGame(
-                connectCommand.gameID(),
+                connectCommand.getGameID(),
                 authData.username() + " joined as " + playerRole,
                 authData.username()
         );
@@ -118,13 +114,13 @@ public class WebSocketService {
     private void leaveWS(WsMessageContext ctx, String json) {
         UserGameCommand leaveCommand = gson.fromJson(json, UserGameCommand.class);
 
-        AuthData authData = getAuthData(ctx, leaveCommand.authToken());
+        AuthData authData = getAuthData(ctx, leaveCommand.getAuthToken());
         if (authData == null) {
             ctx.closeSession();
             return;
         }
 
-        GameData gameData = getGameData(ctx, leaveCommand.gameID());
+        GameData gameData = getGameData(ctx, leaveCommand.getGameID());
         if (gameData == null) {
             ctx.closeSession();
             return;
@@ -158,17 +154,17 @@ public class WebSocketService {
 
         connections.remove(ctx);
 
-        Set<Connection> gameSet = gameConnections.get(leaveCommand.gameID());
+        Set<Connection> gameSet = gameConnections.get(leaveCommand.getGameID());
         if (gameSet != null) {
             gameSet.removeIf(connection -> connection.ws.equals(ctx));
 
             if (gameSet.isEmpty()) {
-                gameConnections.remove(leaveCommand.gameID());
+                gameConnections.remove(leaveCommand.getGameID());
             }
         }
 
         broadcastToGame(
-                leaveCommand.gameID(),
+                leaveCommand.getGameID(),
                 username + " left the game",
                 username
         );
@@ -179,13 +175,13 @@ public class WebSocketService {
     private void resignWS(WsMessageContext ctx, String json) {
         UserGameCommand resignCommand = gson.fromJson(json, UserGameCommand.class);
 
-        AuthData authData = getAuthData(ctx, resignCommand.authToken());
+        AuthData authData = getAuthData(ctx, resignCommand.getAuthToken());
         if (authData == null) {
             ctx.closeSession();
             return;
         }
 
-        GameData gameData = getGameData(ctx, resignCommand.gameID());
+        GameData gameData = getGameData(ctx, resignCommand.getGameID());
         if (gameData == null) {
             ctx.closeSession();
             return;
@@ -213,22 +209,22 @@ public class WebSocketService {
         }
 
         broadcastToGame(
-                resignCommand.gameID(),
+                resignCommand.getGameID(),
                 authData.username() + " resigned",
                 null
         );
     }
 
     private void makeMoveWS(WsMessageContext ctx, String json) {
-        MakeMoveWS makeMoveWS = gson.fromJson(json, MakeMoveWS.class);
+        MakeMoveCommand makeMoveCommand = gson.fromJson(json, MakeMoveCommand.class);
 
-        AuthData authData = getAuthData(ctx, makeMoveWS.authToken());
+        AuthData authData = getAuthData(ctx, makeMoveCommand.getAuthToken());
         if (authData == null) {
             ctx.closeSession();
             return;
         }
 
-        GameData gameData = getGameData(ctx, makeMoveWS.gameID());
+        GameData gameData = getGameData(ctx, makeMoveCommand.getGameID());
         if (gameData == null) {
             ctx.closeSession();
             return;
@@ -261,29 +257,29 @@ public class WebSocketService {
         }
 
         Collection<ChessMove> chessMoves =
-                gameData.getChessGame().validMoves(makeMoveWS.move().getStartPosition());
+                gameData.getChessGame().validMoves(makeMoveCommand.getMove().getStartPosition());
 
         if (chessMoves == null || chessMoves.isEmpty()) {
             sendError(ctx, "Error: invalid move");
             return;
         }
 
-        if (!chessMoves.contains(makeMoveWS.move())) {
+        if (!chessMoves.contains(makeMoveCommand.getMove())) {
             sendError(ctx, "Error: invalid move");
             return;
         }
 
         String moveMessage = authData.username() + " moved from "
-                + convertChessPositionToString(makeMoveWS.move().getStartPosition())
+                + convertChessPositionToString(makeMoveCommand.getMove().getStartPosition())
                 + " to "
-                + convertChessPositionToString(makeMoveWS.move().getEndPosition());
+                + convertChessPositionToString(makeMoveCommand.getMove().getEndPosition());
 
-        if (makeMoveWS.move().getPromotionPiece() != null) {
-            moveMessage += " and promoted to " + makeMoveWS.move().getPromotionPiece();
+        if (makeMoveCommand.getMove().getPromotionPiece() != null) {
+            moveMessage += " and promoted to " + makeMoveCommand.getMove().getPromotionPiece();
         }
 
         try {
-            gameData.getChessGame().makeMove(makeMoveWS.move());
+            gameData.getChessGame().makeMove(makeMoveCommand.getMove());
 
             ChessGame.TeamColor currentTurn = gameData.getChessGame().getTeamTurn();
 
@@ -326,12 +322,9 @@ public class WebSocketService {
             return;
         }
 
-        LoadGameWS loadGameWS = new LoadGameWS(
-                ServerMessage.ServerMessageType.LOAD_GAME,
-                game
-        );
+        LoadGameMessage loadGameMessage = new LoadGameMessage(game);
 
-        String json = gson.toJson(loadGameWS);
+        String json = gson.toJson(loadGameMessage);
 
         for (Connection connection : connections) {
             connection.ws.send(json);
