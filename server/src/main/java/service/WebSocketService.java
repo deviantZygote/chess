@@ -130,10 +130,47 @@ public class WebSocketService {
             return;
         }
 
+        String username = authData.username();
+
+        String white = gameData.getWhiteUsername();
+        String black = gameData.getBlackUsername();
+
+        if (username.equals(white)) {
+            white = null;
+        } else if (username.equals(black)) {
+            black = null;
+        }
+
+        GameData updatedGame = new GameData(
+                gameData.getGameID(),
+                gameData.getGameName(),
+                white,
+                black,
+                gameData.getChessGame()
+        );
+
+        try {
+            dataAccess.updateGame(updatedGame);
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: internal server error");
+            return;
+        }
+
+        connections.remove(ctx);
+
+        Set<Connection> gameSet = gameConnections.get(leaveCommand.gameID());
+        if (gameSet != null) {
+            gameSet.removeIf(connection -> connection.ws.equals(ctx));
+
+            if (gameSet.isEmpty()) {
+                gameConnections.remove(leaveCommand.gameID());
+            }
+        }
+
         broadcastToGame(
                 leaveCommand.gameID(),
-                authData.username() + " left the game",
-                authData.username()
+                username + " left the game",
+                username
         );
 
         ctx.closeSession();

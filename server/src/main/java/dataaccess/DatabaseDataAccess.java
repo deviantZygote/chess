@@ -399,16 +399,19 @@ public class DatabaseDataAccess implements DataAccess {
         Gson gson = new Gson();
 
         String sql = """
-        UPDATE game
-        SET game = ?
-        WHERE gameID = ?
-        """;
+    UPDATE game
+    SET gameName = ?, whiteUsername = ?, blackUsername = ?, game = ?
+    WHERE gameID = ?
+    """;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, gson.toJson(gameData.getChessGame()));
-            stmt.setInt(2, gameData.getGameID());
+            stmt.setString(1, gameData.getGameName());
+            stmt.setString(2, gameData.getWhiteUsername());
+            stmt.setString(3, gameData.getBlackUsername());
+            stmt.setString(4, gson.toJson(gameData.getChessGame()));
+            stmt.setInt(5, gameData.getGameID());
 
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated == 0) {
