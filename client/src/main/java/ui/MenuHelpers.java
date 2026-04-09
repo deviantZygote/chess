@@ -5,6 +5,7 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GetGamesResponse;
 
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class MenuHelpers {
@@ -83,6 +84,7 @@ public class MenuHelpers {
                 menu.printToTerminal("show player turn : spt\n");
                 menu.printToTerminal("draw board : db\n");
                 menu.printToTerminal("leave match : lm\n");
+                menu.printToTerminal("resign : re\n");
                 menu.printToTerminal("logout : lo\n");
             }
             case WATCH_GAME -> {
@@ -221,8 +223,27 @@ public class MenuHelpers {
             menu.showPieceMoves(input);
         } else if (Pattern.matches("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$", input)) {
             menu.makeMove(input);
+        }  else if (Pattern.matches("(?i)^(re|resign)$", input)) {
+            if (confirmResign()) {
+                menu.resignGame();
+            }
         } else {
             menu.printToTerminal("Your input failed to match an option");
+        }
+    }
+
+    private boolean confirmResign() {
+        System.out.print("Are you sure you want to resign? (yes/no): ");
+
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine().trim().toLowerCase();
+
+        if (input.equals("yes") || input.equals("y")) {
+            System.out.println("You have resigned.");
+            return true;
+        } else {
+            System.out.println("Resignation cancelled.");
+            return false;
         }
     }
 

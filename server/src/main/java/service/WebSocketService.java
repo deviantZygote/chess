@@ -128,28 +128,30 @@ public class WebSocketService {
 
         String username = authData.username();
 
-        String white = gameData.getWhiteUsername();
-        String black = gameData.getBlackUsername();
+        if (!gameData.getChessGame().isGameOver()) {
+            String white = gameData.getWhiteUsername();
+            String black = gameData.getBlackUsername();
 
-        if (username.equals(white)) {
-            white = null;
-        } else if (username.equals(black)) {
-            black = null;
-        }
+            if (username.equals(white)) {
+                white = null;
+            } else if (username.equals(black)) {
+                black = null;
+            }
 
-        GameData updatedGame = new GameData(
-                gameData.getGameID(),
-                gameData.getGameName(),
-                white,
-                black,
-                gameData.getChessGame()
-        );
+            GameData updatedGame = new GameData(
+                    gameData.getGameID(),
+                    gameData.getGameName(),
+                    white,
+                    black,
+                    gameData.getChessGame()
+            );
 
-        try {
-            dataAccess.updateGame(updatedGame);
-        } catch (DataAccessException e) {
-            sendError(ctx, "Error: internal server error");
-            return;
+            try {
+                dataAccess.updateGame(updatedGame);
+            } catch (DataAccessException e) {
+                sendError(ctx, "Error: internal server error");
+                return;
+            }
         }
 
         connections.remove(ctx);

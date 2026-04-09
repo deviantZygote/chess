@@ -12,6 +12,7 @@ import model.*;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveCommand;
 import websocket.commands.MakeMoveCommand;
+import websocket.commands.ResignCommand;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -385,8 +386,13 @@ public class Menu {
                     color = ChessGame.TeamColor.BLACK;
                 }
 
-                JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
-                serverFacade.joinGame(request, getAuthToken());
+                try {
+                    JoinGameRequest request = new JoinGameRequest(color, targetGameData.getGameID());
+                    serverFacade.joinGame(request, getAuthToken());
+                } catch (NullPointerException e) {
+                    printToTerminal(String.format("Check your game Number: %s\nPress h for commands:\n\n", clientDisplayId));
+                    return;
+                }
 
                 webSocketFacade = new WebSocketFacade(serverUrl, this);
                 ConnectCommand connectCommand = new ConnectCommand(
@@ -455,5 +461,29 @@ public class Menu {
 
     protected void printQuit () {
         printToTerminal("Thanks for playing!\n");
+    }
+
+    protected void resignGame() {
+        if (targetGameData == null) {
+            printToTerminal("\nNo game selected.\n");
+            return;
+        }
+
+        if (getState() != STATE.IN_GAME) {
+            printToTerminal("\nYou must be in a game to resign.\n");
+            return;
+        }
+
+        if (getTeamColor() == null) {
+            printToTerminal("\nObservers cannot resign.\n");
+            return;
+        }
+
+        ResignCommand resignCommand = new ResignCommand(
+                getAuthToken(),
+                targetGameData.getGameID()
+        );
+
+        webSocketFacade.send(resignCommand);
     }
 }
