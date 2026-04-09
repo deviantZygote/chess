@@ -5,6 +5,8 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GetGamesResponse;
 
+import java.util.regex.Pattern;
+
 public class MenuHelpers {
     public boolean makeMoveDataValidation(
             ChessPosition startPos,
@@ -152,6 +154,92 @@ public class MenuHelpers {
             case WATCH_GAME:
                 System.out.print("\nOBSERVER MENU: ");
                 break;
+        }
+    }
+
+    public void processInput(String input, Menu menu) {
+        if (Pattern.matches("(?i)help", input) ||
+                Pattern.matches("(?i)h", input)) {
+            menu.printHelp();
+            return;
+        }
+
+        if (Pattern.matches("(?i)quit", input) ||
+                Pattern.matches("(?i)q", input)) {
+            menu.printQuit();
+            return;
+        }
+
+        switch (menu.getState()) {
+            case LOGGED_OUT -> processLoggedOutInput(input, menu);
+            case LOGGED_IN -> processLoggedInInput(input, menu);
+            case IN_GAME -> processInGameInput(input, menu);
+            case WATCH_GAME -> processWatchGameInput(input, menu);
+        }
+    }
+
+    private void processLoggedOutInput(String input, Menu menu) {
+        if (Pattern.matches("(?i)login", input) ||
+                Pattern.matches("(?i)li", input)) {
+            menu.login();
+        } else if (Pattern.matches("(?i)register", input) ||
+                Pattern.matches("(?i)r", input)) {
+            menu.register();
+        } else {
+            menu.printToTerminal("Your input failed to match an option");
+        }
+    }
+
+    private void processLoggedInInput(String input, Menu menu) {
+        if (Pattern.matches("(?i)logout", input) ||
+                Pattern.matches("(?i)lo", input)) {
+            menu.logout();
+        } else if (Pattern.matches("(?i)^(cg|create\\s+game)\\s+(\\S+)$", input)) {
+            menu.createGame(input);
+        } else if (Pattern.matches("(?i)^(lg|list)$", input)) {
+            menu.listGames();
+        } else if (Pattern.matches("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black|w|b)$", input)) {
+            menu.joinGame(input);
+        } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
+            menu.watchGame(input);
+        } else {
+            menu.printToTerminal("Your input failed to match an option");
+        }
+    }
+
+    private void processInGameInput(String input, Menu menu) {
+        if (Pattern.matches("(?i)logout", input) ||
+                Pattern.matches("(?i)lo", input)) {
+            menu.logout();
+        } else if (Pattern.matches("(?i)^(lm|leave\\s+match)$", input)) {
+            menu.leaveMatch();
+        } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
+            menu.drawBoard();
+        } else if (Pattern.matches("(?i)^(spt|show\\s+player\\s+turn)$", input)) {
+            menu.showPlayerTurn();
+        } else if (Pattern.matches("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$", input)) {
+            menu.showPieceMoves(input);
+        } else if (Pattern.matches("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$", input)) {
+            menu.makeMove(input);
+        } else {
+            menu.printToTerminal("Your input failed to match an option");
+        }
+    }
+
+    private void processWatchGameInput(String input, Menu menu) {
+        if (Pattern.matches("(?i)logout", input) ||
+                Pattern.matches("(?i)lo", input)) {
+            menu.logout();
+        } else if (Pattern.matches("(?i)^(lm|leave\\s+match)$", input)) {
+            menu.leaveMatch();
+        } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
+            menu.drawBoard();
+        } else if (Pattern.matches("(?i)^(spt|show\\s+player\\s+turn)$", input)) {
+            menu.showPlayerTurn();
+        } else if (Pattern.matches("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$", input)) {
+            menu.showPieceMoves(input);
+        } else {
+            menu.printToTerminal("Your input failed to match an option");
         }
     }
 }

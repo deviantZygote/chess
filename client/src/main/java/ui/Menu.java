@@ -106,45 +106,10 @@ public class Menu {
     }
 
     public void processInput (String input) {
-        if (Pattern.matches("(?i)help", input) ||
-                Pattern.matches("(?i)h", input)) {
-            printHelp();
-        } else if (Pattern.matches("(?i)quit", input) ||
-                Pattern.matches("(?i)q", input)) {
-            printQuit();
-        } else if (Pattern.matches("(?i)login", input) ||
-                Pattern.matches("(?i)li", input)) {
-            login();
-        } else if (Pattern.matches("(?i)register", input) ||
-                Pattern.matches("(?i)r", input)) {
-            register();
-        } else if (Pattern.matches("(?i)logout", input) ||
-                Pattern.matches("(?i)lo", input)) {
-            logout();
-        } else if (Pattern.matches("(?i)^(cg|create\\s+game)\\s+(\\S+)$", input)) {
-            createGame(input);
-        } else if (Pattern.matches("(?i)^(lg|list)$", input)) {
-            listGames();
-        } else if (Pattern.matches("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black)$", input)) {
-            joinGame(input);
-        } else if (Pattern.matches("(?i)^(lm|leave\\s+match)$", input)) {
-            leaveMatch();
-        } else if (Pattern.matches("(?i)^(db|draw\\s+board)$", input)) {
-            drawBoard();
-        } else if (Pattern.matches("(?i)^(wg|watch\\s+game)\\s+(\\d+)$", input)) {
-            watchGame(input);
-        } else if (Pattern.matches("(?i)^(spt|show\\s+player\\s+turn)$", input)) {
-            showPlayerTurn();
-        } else if (Pattern.matches("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$", input)) {
-            showPieceMoves(input);
-        }  else if (Pattern.matches("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$", input)) {
-            makeMove(input);
-        }  else {
-            printToTerminal("Your input failed to match an option");
-        }
+        menuHelpers.processInput(input, this);
     }
 
-    private void makeMove(String input) {
+    protected void makeMove(String input) {
 
         Pattern pattern = Pattern.compile("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$");
         Matcher matcher = pattern.matcher(input);
@@ -236,7 +201,7 @@ public class Menu {
         webSocketFacade.send(makeMoveCommand);
     }
 
-    private void showPieceMoves(String input) {
+    protected void showPieceMoves(String input) {
         Pattern pattern = Pattern.compile("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$");
         Matcher matcher = pattern.matcher(input);
 
@@ -266,11 +231,11 @@ public class Menu {
         }
     }
 
-    private void showPlayerTurn() {
+    protected void showPlayerTurn() {
         printToTerminal("It is " + this.getChessGame().getTeamTurn().toString().toLowerCase() + "'s turn");
     }
 
-    private void leaveMatch() {
+    protected void leaveMatch() {
         LeaveCommand leaveCommand = new LeaveCommand(
                 getAuthToken(),
                 targetGameData.getGameID()
@@ -283,7 +248,7 @@ public class Menu {
         printToTerminal("\n\nLeaving match\n\n");
     }
 
-    private void register() {
+    protected void register() {
 
         printToTerminal("Enter your email\n");
         String email = scanner.nextLine();
@@ -308,11 +273,11 @@ public class Menu {
         }
     }
 
-    private void printHelp () {
+    protected void printHelp () {
         menuHelpers.printHelp(this.state, this);
     }
 
-    private void login() {
+    protected void login() {
         printToTerminal("Enter your username\n");
         String username = scanner.nextLine();
         printToTerminal("Enter your password\n");
@@ -339,7 +304,7 @@ public class Menu {
         printHelp();
     }
 
-    private void logout() {
+    protected void logout() {
         try {
             this.serverFacade.logout(getAuthToken());
             setAuthToken("");
@@ -350,7 +315,7 @@ public class Menu {
         printToTerminal("\nGoodbye, you're logged out.\n\nType help for options\n\n");
     }
 
-    private void createGame(String input) {
+    protected void createGame(String input) {
         try {
             String gameName = "";
             String[] args = input.split(" ");
@@ -369,7 +334,7 @@ public class Menu {
         }
     }
 
-    private void listGames() {
+    protected void listGames() {
         try {
             this.gamesResponse = this.serverFacade.getGames(this.getAuthToken());
             int gameNumber = 0;
@@ -395,7 +360,7 @@ public class Menu {
         }
     }
 
-    private void joinGame(String input) {
+    protected void joinGame(String input) {
         try {
             Pattern pattern = Pattern.compile("(?i)^(jg|join\\s+game)\\s+(\\d+)\\s+(white|black|w|b)$");
             Matcher matcher = pattern.matcher(input);
@@ -441,11 +406,11 @@ public class Menu {
         }
     }
 
-    private void drawBoard() {
+    protected void drawBoard() {
         DrawBoard drawBoard = new DrawBoard(this.getChessGame(), this.getTeamColor(), highlightedSquares, this);
     }
 
-    private void watchGame(String input) {
+    protected void watchGame(String input) {
         Pattern pattern = Pattern.compile("(?i)^(wg|watch\\s+game)\\s+(\\d+)$");
         Matcher matcher = pattern.matcher(input);
 
@@ -479,7 +444,7 @@ public class Menu {
         printPrompt();
     }
 
-    private void printQuit () {
+    protected void printQuit () {
         printToTerminal("Thanks for playing!\n");
     }
 }
