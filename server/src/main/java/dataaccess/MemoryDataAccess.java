@@ -113,4 +113,19 @@ public class MemoryDataAccess implements DataAccess {
         chessGamesByID.replace(gameID, targetGame);
     }
 
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {
+        if (gameData == null) {
+            throw new DataAccessException("Error: bad data sent");
+        }
+
+        int gameID = gameData.getGameID();
+
+        if (!chessGamesByID.containsKey(gameID)) {
+            throw new DataAccessException("Error: game not found");
+        }
+
+        chessGamesByID.replace(gameID, gameData);
+    }
+
 }

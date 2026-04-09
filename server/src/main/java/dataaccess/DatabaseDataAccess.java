@@ -390,5 +390,34 @@ public class DatabaseDataAccess implements DataAccess {
         }
     }
 
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {
+        if (gameData == null || gameData.getChessGame() == null) {
+            throw new DataAccessException("Error: bad data sent");
+        }
+
+        Gson gson = new Gson();
+
+        String sql = """
+        UPDATE game
+        SET game = ?
+        WHERE gameID = ?
+        """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, gson.toJson(gameData.getChessGame()));
+            stmt.setInt(2, gameData.getGameID());
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new DataAccessException("Error: game not found");
+            }
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to update gameData", e);
+        }
+    }
 
 }

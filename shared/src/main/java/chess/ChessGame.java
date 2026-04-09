@@ -157,7 +157,6 @@ public class ChessGame {
 
 
         if (validateMove(move, startPieceAndPosition.piece())) {
-            // make the move
 
             if (move.getPromotionPiece() != null) {
                 ChessPiece promoPiece;

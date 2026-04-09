@@ -18,5 +18,5 @@ public interface DataAccess {
     GameData getGame(int gameID) throws DataAccessException;
     Collection<GameData> getGames() throws DataAccessException;
     void assignGamePlayer(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException;
-
+    void updateGame(GameData gameData) throws DataAccessException;
 }

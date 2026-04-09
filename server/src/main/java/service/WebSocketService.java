@@ -1,5 +1,9 @@
 package service;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -9,6 +13,7 @@ import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import model.*;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +28,12 @@ public class WebSocketService {
 
     public WebSocketService (DataAccess dataAccess) {
         this.dataAccess = dataAccess;
+    }
+
+    private void sendNotification(WsContext ctx, String message) {
+        NotificationWS notificationWS =
+                new NotificationWS(WSCommands.NOTIFICATION, message);
+        ctx.send(gson.toJson(notificationWS));
     }
 
     public void handleCommand (WsMessageContext ctx) {
@@ -40,7 +51,119 @@ public class WebSocketService {
             case WATCH:
                 watchGameWs(ctx, json);
                 break;
+            case MAKE_MOVE:
+                makeMoveWS(ctx, json);
+                break;
         }
+    }
+
+    private void makeMoveWS(WsMessageContext ctx, String json) {
+        MakeMoveWS makeMoveWS = gson.fromJson(json, MakeMoveWS.class);
+        AuthData authData = getAuthData(ctx, makeMoveWS.authToken());
+
+        if (authData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        GameData gameData;
+        gameData = getGameData(ctx, makeMoveWS.gameID());
+        if (gameData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        // check observer
+        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
+        if (playerRole == PlayerRole.OBSERVER) {
+            sendNotification(ctx,"Observer's can't make moves");
+            return;
+        }
+
+        // reject if there aren't two players in the game
+        if (gameData.getBlackUsername() == null || gameData.getWhiteUsername() == null) {
+            sendNotification(ctx,"You need two players to start the game");
+            return;
+        }
+
+        // check turn against player color
+        if ((gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.WHITE) &&
+                gameData.getBlackUsername().equals(authData.username())) {
+            sendNotification(ctx,"It's not your turn");
+            return;
+        }
+
+        if ((gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.BLACK) &&
+                gameData.getWhiteUsername().equals(authData.username())) {
+            sendNotification(ctx,"It's not your turn");
+            return;
+        }
+
+
+        Collection<ChessMove> chessMoves =
+                gameData.getChessGame().validMoves(makeMoveWS.move().getStartPosition());
+
+        if (chessMoves == null || chessMoves.isEmpty()) {
+            sendNotification(ctx,"Not a valid move");
+            return;
+        }
+
+        if (chessMoves.contains(makeMoveWS.move())) {
+            // make chess move on gameData object
+            try {
+                gameData.getChessGame().makeMove(makeMoveWS.move());
+                dataAccess.updateGame(gameData);
+            } catch (InvalidMoveException e) {
+                sendNotification(ctx,"Invalid move");
+                return;
+            } catch (DataAccessException e) {
+                sendNotification(ctx,"Error: Internal Server Error");
+                return;
+            }
+
+            String moveMessage = authData.username() + " moved from " +
+                    convertChessPositionToString(makeMoveWS.move().getStartPosition()) +
+                    " to " +
+                    convertChessPositionToString(makeMoveWS.move().getEndPosition());
+
+            broadcastToGame(gameData.getGameID(), moveMessage, null);
+            broadcastGameState(gameData.getGameID(), gameData.getChessGame());
+        }
+
+    }
+
+    private void broadcastGameState(int gameID, ChessGame chessGame) {
+        Set<WsContext> sockets = gameConnections.get(gameID);
+
+        if (sockets == null || sockets.isEmpty()) {
+            return;
+        }
+
+        LoadGameWS loadGameWS = new LoadGameWS(WSCommands.LOAD_GAME, chessGame);
+        String json = gson.toJson(loadGameWS);
+
+        for (WsContext socket : sockets) {
+            socket.send(json);
+        }
+    }
+
+    private String convertChessPositionToString(ChessPosition position) {
+        if (position == null) {
+            return null;
+        }
+
+        int row = position.getRow();       // 1–8
+        int col = position.getColumn();    // 1–8
+
+        // Validate just in case
+        if (row < 1 || row > 8 || col < 1 || col > 8) {
+            return null;
+        }
+
+        char file = (char) ('a' + col - 1);   // 1 → 'a', 8 → 'h'
+        char rank = (char) ('0' + row);       // 1 → '1', 8 → '8'
+
+        return "" + file + rank;
     }
 
     private void watchGameWs (WsMessageContext ctx, String json) {
@@ -73,7 +196,7 @@ public class WebSocketService {
     }
 
     private void confirmJoinAsObvToPlayer (WsContext ctx, PlayerRole playerRole) {
-        ctx.send("\nYou joined the game as " + playerRole + "\n");
+        sendNotification(ctx,"\nYou joined the game as " + playerRole + "\n");
     }
 
 
@@ -105,14 +228,14 @@ public class WebSocketService {
     }
 
     private void confirmLeaveToPlayer (WsContext ctx) {
-        ctx.send("\nYou left the game\n");
+        sendNotification(ctx,"\nYou left the game\n");
     }
 
     private AuthData getAuthData (WsMessageContext ctx, String authToken) {
         try {
             return validateLogin(authToken, dataAccess);
         } catch (UnauthorizedException e) {
-            ctx.send("Error: Unauthorized");
+            sendNotification(ctx,"Error: Unauthorized");
             ctx.session.close();
             return null;
         }
@@ -123,13 +246,13 @@ public class WebSocketService {
         try {
             gameData = dataAccess.getGame(gameID);
         } catch (DataAccessException e) {
-            ctx.send("Error: Internal Server Error");
+            sendNotification(ctx,"Error: Internal Server Error");
             ctx.session.close();
             return null;
         }
 
         if (gameData == null) {
-            ctx.send("Error: Bad Request");
+            sendNotification(ctx,"Error: Bad Request");
             ctx.session.close();
             return null;
         }
@@ -166,7 +289,7 @@ public class WebSocketService {
     }
 
     private void confirmJoinToPlayer (WsContext ctx, PlayerRole playerRole) {
-        ctx.send("\nYou joined the game as " + playerRole + "\n");
+        sendNotification(ctx,"\nYou joined the game as " + playerRole + "\n");
     }
 
     private void broadcastToGame(int gameID, String message, WsContext exclude) {
@@ -176,7 +299,7 @@ public class WebSocketService {
 
         for (WsContext socket : sockets) {
             if (socket != exclude) {
-                socket.send(message);
+                sendNotification(socket, message);
             }
         }
     }

@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import client.ResponseException;
 import client.ServerFacade;
@@ -38,11 +39,11 @@ public class Menu {
         this.serverFacade = new ServerFacade(serverUrl);
     }
 
-    private void setChessGame(ChessGame chessGame) {
+    public void setChessGame(ChessGame chessGame) {
         this.chessGame = chessGame;
     }
 
-    private ChessGame getChessGame() {
+    public ChessGame getChessGame() {
         return this.chessGame;
     }
 
@@ -68,6 +69,14 @@ public class Menu {
 
     public STATE getState () {
         return this.state;
+    }
+
+    public void updateGame(ChessGame chessGame) {
+        synchronized (consoleLock) {
+            setChessGame(chessGame);
+            drawBoard();
+            printPrompt();
+        }
     }
 
     public void printToTerminal(String message) {
@@ -148,9 +157,118 @@ public class Menu {
             showPlayerTurn();
         } else if (Pattern.matches("(?i)^(spm|show\\s+piece\\s+moves)\\s+(\\S+)$", input)) {
             showPieceMoves(input);
+        }  else if (Pattern.matches("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$", input)) {
+            makeMove(input);
         }  else {
             printToTerminal("Your input failed to match an option");
         }
+    }
+
+    private void makeMove(String input) {
+        Pattern pattern = Pattern.compile("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$");
+        Matcher matcher = pattern.matcher(input);
+
+        if (!matcher.matches()) {
+            printToTerminal("\nUsage: mp <from> <to>\n");
+            return;
+        }
+
+        ChessPosition start = convertStringToChessPosition(matcher.group(2));
+        ChessPosition end = convertStringToChessPosition(matcher.group(3));
+
+        if (start == null || end == null) {
+            printToTerminal("\nInvalid coordinates.\n");
+            return;
+        }
+
+        if (this.getTeamColor() == null) {
+            printToTerminal("\nObservers can't make moves.\n");
+            return;
+        }
+
+        if (this.getTeamColor() != this.getChessGame().getTeamTurn()) {
+            printToTerminal("\nIt's not your turn. Please wait.\n");
+            return;
+        }
+
+        ChessPiece chessPiece = this.getChessGame().getBoard().getPiece(start);
+        if (chessPiece == null) {
+            printToTerminal("\nNo piece at that position.\n");
+            return;
+        }
+
+        if (chessPiece.getTeamColor() != this.getTeamColor()) {
+            printToTerminal("\nYou can only move your own pieces.\n");
+            return;
+        }
+
+        Collection<ChessMove> validMoves = getChessGame().validMoves(start);
+        if (validMoves == null || validMoves.isEmpty()) {
+            printToTerminal("\nNo valid moves for that piece.\n");
+            return;
+        }
+
+        List<ChessMove> matchingMoves = new ArrayList<>();
+        for (ChessMove move : validMoves) {
+            if (move.getEndPosition().equals(end)) {
+                matchingMoves.add(move);
+            }
+        }
+
+        if (matchingMoves.isEmpty()) {
+            printToTerminal("\nInvalid move.\n");
+            return;
+        }
+
+        ChessMove selectedMove;
+
+        if (matchingMoves.size() == 1) {
+            selectedMove = matchingMoves.get(0);
+        } else {
+            printToTerminal("\nPromote to (q, r, b, n): ");
+            String promotionInput = scanner.nextLine().trim().toLowerCase();
+
+            ChessPiece.PieceType promotionType;
+            switch (promotionInput) {
+                case "q":
+                    promotionType = ChessPiece.PieceType.QUEEN;
+                    break;
+                case "r":
+                    promotionType = ChessPiece.PieceType.ROOK;
+                    break;
+                case "b":
+                    promotionType = ChessPiece.PieceType.BISHOP;
+                    break;
+                case "n":
+                    promotionType = ChessPiece.PieceType.KNIGHT;
+                    break;
+                default:
+                    printToTerminal("\nInvalid promotion choice.\n");
+                    return;
+            }
+
+            selectedMove = null;
+            for (ChessMove move : matchingMoves) {
+                if (move.getPromotionPiece() == promotionType) {
+                    selectedMove = move;
+                    break;
+                }
+            }
+
+            if (selectedMove == null) {
+                printToTerminal("\nInvalid promotion selection.\n");
+                return;
+            }
+        }
+
+        MakeMoveWS makeMoveWS = new MakeMoveWS(
+                WSCommands.MAKE_MOVE,
+                getAuthToken(),
+                targetGameData.getGameID(),
+                selectedMove
+        );
+
+        webSocketFacade.send(makeMoveWS);
     }
 
     private void showPieceMoves(String input) {

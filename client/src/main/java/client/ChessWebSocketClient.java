@@ -1,12 +1,9 @@
 package client;
 
 import jakarta.websocket.*;
-import model.ConnectGameWS;
-import model.JoinGameWS;
+import model.*;
 
 import com.google.gson.Gson;
-import model.WSCommands;
-import model.WatchGameWS;
 import ui.Menu;
 
 @ClientEndpoint
@@ -65,9 +62,31 @@ public class ChessWebSocketClient {
 
     @OnMessage
     public void onMessage(String message) {
-        menu.printAsyncMessage(message);
-        if (message.contains("Unauthorized")) {
-            menu.handleUnauthorized();
+        BaseCommand baseCommand = gson.fromJson(message, BaseCommand.class);
+
+        if (baseCommand == null || baseCommand.commandType() == null) {
+            menu.printAsyncMessage(message);
+            return;
+        }
+
+        switch (baseCommand.commandType()) {
+            case LOAD_GAME:
+                LoadGameWS loadGameWS = gson.fromJson(message, LoadGameWS.class);
+                menu.updateGame(loadGameWS.chessGame());
+                break;
+
+            case NOTIFICATION:
+                NotificationWS notificationWS = gson.fromJson(message, NotificationWS.class);
+                menu.printAsyncMessage(notificationWS.message());
+
+                if (notificationWS.message().contains("Unauthorized")) {
+                    menu.handleUnauthorized();
+                }
+                break;
+
+            default:
+                menu.printAsyncMessage(message);
+                break;
         }
     }
 
