@@ -1,6 +1,6 @@
 package model;
 
-public record NotificationWS(
+public record ErrorWS(
         ServerMessage.ServerMessageType serverMessageType,
-        String message
+        String errorMessage
 ) {}

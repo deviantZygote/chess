@@ -3,8 +3,8 @@ package model;
 import chess.ChessMove;
 
 public record MakeMoveWS(
-        WSCommands commandType,
+        UserGameCommand.CommandType commandType,
         String authToken,
-        int gameID,
+        Integer gameID,
         ChessMove move
 ) {}

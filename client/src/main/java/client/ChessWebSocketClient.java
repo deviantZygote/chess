@@ -62,30 +62,28 @@ public class ChessWebSocketClient {
 
     @OnMessage
     public void onMessage(String message) {
-        BaseCommand baseCommand = gson.fromJson(message, BaseCommand.class);
+        ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
 
-        if (baseCommand == null || baseCommand.commandType() == null) {
+        if (serverMessage == null || serverMessage.serverMessageType() == null) {
             menu.printAsyncMessage(message);
             return;
         }
 
-        switch (baseCommand.commandType()) {
+        switch (serverMessage.serverMessageType()) {
             case LOAD_GAME:
                 LoadGameWS loadGameWS = gson.fromJson(message, LoadGameWS.class);
-                menu.updateGame(loadGameWS.chessGame());
+                menu.updateGame(loadGameWS.game());
                 break;
-
-            case NOTIFICATION:
-                NotificationWS notificationWS = gson.fromJson(message, NotificationWS.class);
-                menu.printAsyncMessage(notificationWS.message());
-
-                if (notificationWS.message().contains("Unauthorized")) {
+            case ERROR:
+                ErrorWS errorWS = gson.fromJson(message, ErrorWS.class);
+                menu.printAsyncMessage(errorWS.errorMessage());
+                if (errorWS.errorMessage().contains("Unauthorized")) {
                     menu.handleUnauthorized();
                 }
                 break;
-
-            default:
-                menu.printAsyncMessage(message);
+            case NOTIFICATION:
+                NotificationWS notificationWS = gson.fromJson(message, NotificationWS.class);
+                menu.printAsyncMessage(notificationWS.message());
                 break;
         }
     }

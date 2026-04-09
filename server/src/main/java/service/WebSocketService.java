@@ -23,127 +23,255 @@ import static helpers.HelperFunctions.validateLogin;
 public class WebSocketService {
     private final Gson gson = new Gson();
     private final DataAccess dataAccess;
-    Map<WsContext, ConnectionData> connections = new ConcurrentHashMap<>();;
-    Map<Integer, Set<WsContext>> gameConnections = new ConcurrentHashMap<>();;
+    private final Map<WsContext, ConnectionData> connections = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<Connection>> gameConnections = new ConcurrentHashMap<>();
 
-    public WebSocketService (DataAccess dataAccess) {
+    public WebSocketService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
 
-    private void sendNotification(WsContext ctx, String message) {
-        NotificationWS notificationWS =
-                new NotificationWS(WSCommands.NOTIFICATION, message);
-        ctx.send(gson.toJson(notificationWS));
-    }
-
-    public void handleCommand (WsMessageContext ctx) {
+    public void handleCommand(WsMessageContext ctx) {
         String json = ctx.message();
+        UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
 
-        BaseCommand baseCommand = gson.fromJson(json, BaseCommand.class);
+        if (command == null || command.commandType() == null) {
+            sendError(ctx, "Error: bad request");
+            return;
+        }
 
-        switch (baseCommand.commandType()) {
-            case WSCommands.JOIN_GAME:
-                joinGameWS(ctx, json);
-                break;
-            case LEAVE_GAME:
-                leaveGameWS(ctx, json);
-                break;
-            case WATCH:
-                watchGameWs(ctx, json);
+        switch (command.commandType()) {
+            case CONNECT:
+                connectWS(ctx, json);
                 break;
             case MAKE_MOVE:
                 makeMoveWS(ctx, json);
                 break;
+            case LEAVE:
+                leaveWS(ctx, json);
+                break;
+            case RESIGN:
+                resignWS(ctx, json);
+                break;
+            default:
+                sendError(ctx, "Error: bad request");
+                break;
         }
     }
 
-    private void makeMoveWS(WsMessageContext ctx, String json) {
-        MakeMoveWS makeMoveWS = gson.fromJson(json, MakeMoveWS.class);
-        AuthData authData = getAuthData(ctx, makeMoveWS.authToken());
+    private void sendNotification(WsContext ctx, String message) {
+        NotificationWS notificationWS = new NotificationWS(
+                ServerMessage.ServerMessageType.NOTIFICATION,
+                message
+        );
+        ctx.send(gson.toJson(notificationWS));
+    }
 
+    private void sendLoadGame(WsContext ctx, ChessGame game) {
+        LoadGameWS loadGameWS = new LoadGameWS(
+                ServerMessage.ServerMessageType.LOAD_GAME,
+                game
+        );
+        ctx.send(gson.toJson(loadGameWS));
+    }
+
+    private void sendError(WsContext ctx, String errorMessage) {
+        ErrorWS errorWS = new ErrorWS(
+                ServerMessage.ServerMessageType.ERROR,
+                errorMessage
+        );
+        ctx.send(gson.toJson(errorWS));
+    }
+
+    private void connectWS(WsMessageContext ctx, String json) {
+        UserGameCommand connectCommand = gson.fromJson(json, UserGameCommand.class);
+
+        AuthData authData = getAuthData(ctx, connectCommand.authToken());
         if (authData == null) {
             ctx.closeSession();
             return;
         }
 
-        GameData gameData;
-        gameData = getGameData(ctx, makeMoveWS.gameID());
+        GameData gameData = getGameData(ctx, connectCommand.gameID());
         if (gameData == null) {
             ctx.closeSession();
             return;
         }
 
-        // check observer
+        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
+
+        ConnectionData connectionData =
+                new ConnectionData(authData.username(), connectCommand.gameID(), playerRole);
+
+        connections.put(ctx, connectionData);
+        gameConnections
+                .computeIfAbsent(connectCommand.gameID(), k -> ConcurrentHashMap.newKeySet())
+                .add(new Connection(authData.username(), ctx));
+
+        sendLoadGame(ctx, gameData.getChessGame());
+        broadcastToGame(
+                connectCommand.gameID(),
+                authData.username() + " joined as " + playerRole,
+                authData.username()
+        );
+    }
+
+    private void leaveWS(WsMessageContext ctx, String json) {
+        UserGameCommand leaveCommand = gson.fromJson(json, UserGameCommand.class);
+
+        AuthData authData = getAuthData(ctx, leaveCommand.authToken());
+        if (authData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        GameData gameData = getGameData(ctx, leaveCommand.gameID());
+        if (gameData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        broadcastToGame(
+                leaveCommand.gameID(),
+                authData.username() + " left the game",
+                authData.username()
+        );
+
+        sendNotification(ctx, "You left the game");
+        ctx.closeSession();
+    }
+
+    private void resignWS(WsMessageContext ctx, String json) {
+        UserGameCommand resignCommand = gson.fromJson(json, UserGameCommand.class);
+
+        AuthData authData = getAuthData(ctx, resignCommand.authToken());
+        if (authData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        GameData gameData = getGameData(ctx, resignCommand.gameID());
+        if (gameData == null) {
+            ctx.closeSession();
+            return;
+        }
+
         PlayerRole playerRole = getPlayerRole(gameData, authData.username());
         if (playerRole == PlayerRole.OBSERVER) {
-            sendNotification(ctx,"Observer's can't make moves");
+            sendError(ctx, "Error: observers cannot resign");
             return;
         }
 
-        // reject if there aren't two players in the game
+        broadcastToGame(
+                resignCommand.gameID(),
+                authData.username() + " resigned",
+                null
+        );
+    }
+
+    private void makeMoveWS(WsMessageContext ctx, String json) {
+        MakeMoveWS makeMoveWS = gson.fromJson(json, MakeMoveWS.class);
+
+        AuthData authData = getAuthData(ctx, makeMoveWS.authToken());
+        if (authData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        GameData gameData = getGameData(ctx, makeMoveWS.gameID());
+        if (gameData == null) {
+            ctx.closeSession();
+            return;
+        }
+
+        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
+        if (playerRole == PlayerRole.OBSERVER) {
+            sendError(ctx, "Error: observers can't make moves");
+            return;
+        }
+
         if (gameData.getBlackUsername() == null || gameData.getWhiteUsername() == null) {
-            sendNotification(ctx,"You need two players to start the game");
+            sendError(ctx, "Error: two players are required to start the game");
             return;
         }
 
-        // check turn against player color
-        if ((gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.WHITE) &&
-                gameData.getBlackUsername().equals(authData.username())) {
-            sendNotification(ctx,"It's not your turn");
+        if (gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.WHITE
+                && gameData.getBlackUsername().equals(authData.username())) {
+            sendError(ctx, "Error: it's not your turn");
             return;
         }
 
-        if ((gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.BLACK) &&
-                gameData.getWhiteUsername().equals(authData.username())) {
-            sendNotification(ctx,"It's not your turn");
+        if (gameData.getChessGame().getTeamTurn() == ChessGame.TeamColor.BLACK
+                && gameData.getWhiteUsername().equals(authData.username())) {
+            sendError(ctx, "Error: it's not your turn");
             return;
         }
-
 
         Collection<ChessMove> chessMoves =
                 gameData.getChessGame().validMoves(makeMoveWS.move().getStartPosition());
 
         if (chessMoves == null || chessMoves.isEmpty()) {
-            sendNotification(ctx,"Not a valid move");
+            sendError(ctx, "Error: invalid move");
             return;
         }
 
-        if (chessMoves.contains(makeMoveWS.move())) {
-            // make chess move on gameData object
-            try {
-                gameData.getChessGame().makeMove(makeMoveWS.move());
-                dataAccess.updateGame(gameData);
-            } catch (InvalidMoveException e) {
-                sendNotification(ctx,"Invalid move");
-                return;
-            } catch (DataAccessException e) {
-                sendNotification(ctx,"Error: Internal Server Error");
-                return;
-            }
-
-            String moveMessage = authData.username() + " moved from " +
-                    convertChessPositionToString(makeMoveWS.move().getStartPosition()) +
-                    " to " +
-                    convertChessPositionToString(makeMoveWS.move().getEndPosition());
-
-            broadcastToGame(gameData.getGameID(), moveMessage, null);
-            broadcastGameState(gameData.getGameID(), gameData.getChessGame());
+        if (!chessMoves.contains(makeMoveWS.move())) {
+            sendError(ctx, "Error: invalid move");
+            return;
         }
 
+        try {
+            gameData.getChessGame().makeMove(makeMoveWS.move());
+            dataAccess.updateGame(gameData);
+        } catch (InvalidMoveException e) {
+            sendError(ctx, "Error: invalid move");
+            return;
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: internal server error");
+            return;
+        }
+
+        String moveMessage = authData.username() + " moved from "
+                + convertChessPositionToString(makeMoveWS.move().getStartPosition())
+                + " to "
+                + convertChessPositionToString(makeMoveWS.move().getEndPosition());
+
+        if (makeMoveWS.move().getPromotionPiece() != null) {
+            moveMessage += " and promoted to " + makeMoveWS.move().getPromotionPiece();
+        }
+
+        broadcastToGame(gameData.getGameID(), moveMessage, authData.username());
+        broadcastGameState(gameData.getGameID(), gameData.getChessGame());
     }
 
-    private void broadcastGameState(int gameID, ChessGame chessGame) {
-        Set<WsContext> sockets = gameConnections.get(gameID);
-
-        if (sockets == null || sockets.isEmpty()) {
+    private void broadcastGameState(int gameID, ChessGame game) {
+        Set<Connection> connections = gameConnections.get(gameID);
+        if (connections == null || connections.isEmpty()) {
             return;
         }
 
-        LoadGameWS loadGameWS = new LoadGameWS(WSCommands.LOAD_GAME, chessGame);
+        LoadGameWS loadGameWS = new LoadGameWS(
+                ServerMessage.ServerMessageType.LOAD_GAME,
+                game
+        );
+
         String json = gson.toJson(loadGameWS);
 
-        for (WsContext socket : sockets) {
-            socket.send(json);
+        for (Connection connection : connections) {
+            connection.ws.send(json);
+        }
+    }
+
+    private void broadcastToGame(int gameID, String message, String excludeUsername) {
+        Set<Connection> connections = gameConnections.get(gameID);
+
+        if (connections == null) {
+            return;
+        }
+
+        for (Connection connection : connections) {
+            if (!connection.username.equals(excludeUsername)) {
+                sendNotification(connection.ws, message);
+            }
         }
     }
 
@@ -152,163 +280,53 @@ public class WebSocketService {
             return null;
         }
 
-        int row = position.getRow();       // 1–8
-        int col = position.getColumn();    // 1–8
+        int row = position.getRow();
+        int col = position.getColumn();
 
-        // Validate just in case
         if (row < 1 || row > 8 || col < 1 || col > 8) {
             return null;
         }
 
-        char file = (char) ('a' + col - 1);   // 1 → 'a', 8 → 'h'
-        char rank = (char) ('0' + row);       // 1 → '1', 8 → '8'
+        char file = (char) ('a' + col - 1);
+        char rank = (char) ('0' + row);
 
         return "" + file + rank;
     }
 
-    private void watchGameWs (WsMessageContext ctx, String json) {
-        GameData gameData;
-
-        WatchGameWS watchGameWS = gson.fromJson(json, WatchGameWS.class);
-        AuthData authData = getAuthData(ctx, watchGameWS.authToken());
-
-        if (authData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        gameData = getGameData(ctx, watchGameWS.gameID());
-        if (gameData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
-
-        ConnectionData connectionData = new ConnectionData(authData.username(), watchGameWS.gameID(), playerRole);
-        connections.put(ctx, connectionData);
-        gameConnections
-                .computeIfAbsent(watchGameWS.gameID(), k -> ConcurrentHashMap.newKeySet())
-                .add(ctx);
-
-        broadcastToGame(watchGameWS.gameID(), "\n\n" + authData.username() + " joined as observer\n\n", ctx);
-        confirmJoinAsObvToPlayer(ctx, playerRole);
-    }
-
-    private void confirmJoinAsObvToPlayer (WsContext ctx, PlayerRole playerRole) {
-        sendNotification(ctx,"\nYou joined the game as " + playerRole + "\n");
-    }
-
-
-    private void leaveGameWS (WsMessageContext ctx, String json) {
-        GameData gameData;
-
-        LeaveGameWS leaveGameWS = gson.fromJson(json, LeaveGameWS.class);
-        AuthData authData = getAuthData(ctx, leaveGameWS.authToken());
-
-        if (authData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        gameData = getGameData(ctx, leaveGameWS.gameID());
-        if (gameData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        broadcastToGame(
-                leaveGameWS.gameID(),
-                "\n\n" + authData.username() + " left the game\n\n",
-                ctx
-        );
-
-        confirmLeaveToPlayer(ctx);
-        ctx.closeSession();
-    }
-
-    private void confirmLeaveToPlayer (WsContext ctx) {
-        sendNotification(ctx,"\nYou left the game\n");
-    }
-
-    private AuthData getAuthData (WsMessageContext ctx, String authToken) {
+    private AuthData getAuthData(WsMessageContext ctx, String authToken) {
         try {
             return validateLogin(authToken, dataAccess);
         } catch (UnauthorizedException e) {
-            sendNotification(ctx,"Error: Unauthorized");
+            sendError(ctx, "Error: unauthorized");
             ctx.session.close();
             return null;
         }
     }
 
-    private GameData getGameData (WsMessageContext ctx, int gameID) {
-        GameData gameData = null;
+    private GameData getGameData(WsMessageContext ctx, int gameID) {
         try {
-            gameData = dataAccess.getGame(gameID);
-        } catch (DataAccessException e) {
-            sendNotification(ctx,"Error: Internal Server Error");
-            ctx.session.close();
-            return null;
-        }
+            GameData gameData = dataAccess.getGame(gameID);
 
-        if (gameData == null) {
-            sendNotification(ctx,"Error: Bad Request");
-            ctx.session.close();
-            return null;
-        }
-        return gameData;
-    }
-
-    private void joinGameWS (WsMessageContext ctx, String json) {
-        GameData gameData;
-        JoinGameWS joinGameWS = gson.fromJson(json, JoinGameWS.class);
-
-        AuthData authData = getAuthData(ctx, joinGameWS.authToken());
-        if (authData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        gameData = getGameData(ctx, joinGameWS.gameID());
-        if (gameData == null) {
-            ctx.closeSession();
-            return;
-        }
-
-        PlayerRole playerRole = getPlayerRole(gameData, authData.username());
-
-        ConnectionData connectionData = new ConnectionData(authData.username(), joinGameWS.gameID(), playerRole);
-        connections.put(ctx, connectionData);
-        gameConnections
-                .computeIfAbsent(joinGameWS.gameID(), k -> ConcurrentHashMap.newKeySet())
-                .add(ctx);
-
-        broadcastToGame(joinGameWS.gameID(), "\n\n" + authData.username() + " joined as " + playerRole + "\n\n", ctx);
-        confirmJoinToPlayer(ctx, playerRole);
-
-    }
-
-    private void confirmJoinToPlayer (WsContext ctx, PlayerRole playerRole) {
-        sendNotification(ctx,"\nYou joined the game as " + playerRole + "\n");
-    }
-
-    private void broadcastToGame(int gameID, String message, WsContext exclude) {
-        Set<WsContext> sockets = gameConnections.get(gameID);
-
-        if (sockets == null) return;
-
-        for (WsContext socket : sockets) {
-            if (socket != exclude) {
-                sendNotification(socket, message);
+            if (gameData == null) {
+                sendError(ctx, "Error: bad request");
+                ctx.session.close();
+                return null;
             }
+
+            return gameData;
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: internal server error");
+            ctx.session.close();
+            return null;
         }
     }
 
-    private PlayerRole getPlayerRole (GameData gameData, String username) {
-        if (!(gameData.getWhiteUsername() == null) && gameData.getWhiteUsername().equals(username)) {
+    private PlayerRole getPlayerRole(GameData gameData, String username) {
+        if (gameData.getWhiteUsername() != null
+                && gameData.getWhiteUsername().equals(username)) {
             return PlayerRole.WHITE;
-        } else if (!(gameData.getBlackUsername() == null) &&
-                gameData.getBlackUsername().equals(username)) {
+        } else if (gameData.getBlackUsername() != null
+                && gameData.getBlackUsername().equals(username)) {
             return PlayerRole.BLACK;
         } else {
             return PlayerRole.OBSERVER;
@@ -324,11 +342,11 @@ public class WebSocketService {
 
         int gameID = connectionData.gameID();
 
-        Set<WsContext> connections = gameConnections.get(gameID);
-        if (connections != null) {
-            connections.remove(ctx);
+        Set<Connection> gameSet = gameConnections.get(gameID);
+        if (gameSet != null) {
+            gameSet.removeIf(connection -> connection.ws.equals(ctx));
 
-            if (connections.isEmpty()) {
+            if (gameSet.isEmpty()) {
                 gameConnections.remove(gameID);
             }
         }
