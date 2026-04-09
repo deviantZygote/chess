@@ -14,6 +14,8 @@ public class ChessGame {
 
     private TeamColor teamTurn;
     private ChessBoard board;
+    private boolean gameOver = false;
+    private String resignedUsername = null;
 
     @Override
     public boolean equals(Object o) {
@@ -35,6 +37,21 @@ public class ChessGame {
         board.resetBoard();
     }
 
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public String getResignedUsername() {
+        return resignedUsername;
+    }
+
+    public void setResignedUsername(String resignedUsername) {
+        this.resignedUsername = resignedUsername;
+    }
 
     /**
      * @return Which team's turn it is

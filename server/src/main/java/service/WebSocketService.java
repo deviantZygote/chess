@@ -197,6 +197,21 @@ public class WebSocketService {
             return;
         }
 
+        if (gameData.getChessGame().isGameOver()) {
+            sendError(ctx, "Error: game is over");
+            return;
+        }
+
+        gameData.getChessGame().setGameOver(true);
+        gameData.getChessGame().setResignedUsername(authData.username());
+
+        try {
+            dataAccess.updateGame(gameData);
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: internal server error");
+            return;
+        }
+
         broadcastToGame(
                 resignCommand.gameID(),
                 authData.username() + " resigned",
@@ -216,6 +231,9 @@ public class WebSocketService {
         GameData gameData = getGameData(ctx, makeMoveWS.gameID());
         if (gameData == null) {
             ctx.closeSession();
+            return;
+        } else if (gameData.getChessGame().isGameOver()) {
+            sendError(ctx, "Error: game is over");
             return;
         }
 
@@ -255,17 +273,6 @@ public class WebSocketService {
             return;
         }
 
-        try {
-            gameData.getChessGame().makeMove(makeMoveWS.move());
-            dataAccess.updateGame(gameData);
-        } catch (InvalidMoveException e) {
-            sendError(ctx, "Error: invalid move");
-            return;
-        } catch (DataAccessException e) {
-            sendError(ctx, "Error: internal server error");
-            return;
-        }
-
         String moveMessage = authData.username() + " moved from "
                 + convertChessPositionToString(makeMoveWS.move().getStartPosition())
                 + " to "
@@ -275,8 +282,42 @@ public class WebSocketService {
             moveMessage += " and promoted to " + makeMoveWS.move().getPromotionPiece();
         }
 
-        broadcastToGame(gameData.getGameID(), moveMessage, authData.username());
+        try {
+            gameData.getChessGame().makeMove(makeMoveWS.move());
+
+            ChessGame.TeamColor currentTurn = gameData.getChessGame().getTeamTurn();
+
+            if (gameData.getChessGame().isInCheckmate(currentTurn)) {
+                gameData.getChessGame().setGameOver(true);
+            }
+
+            dataAccess.updateGame(gameData);
+        } catch (InvalidMoveException e) {
+            sendError(ctx, "Error: invalid move");
+            return;
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: internal server error");
+            return;
+        }
+
+        ChessGame.TeamColor currentTurn = gameData.getChessGame().getTeamTurn();
+
         broadcastGameState(gameData.getGameID(), gameData.getChessGame());
+        broadcastToGame(gameData.getGameID(), moveMessage, authData.username());
+
+        if (gameData.getChessGame().isInCheckmate(currentTurn)) {
+            broadcastToGame(
+                    gameData.getGameID(),
+                    currentTurn.toString().toLowerCase() + " is in checkmate",
+                    null
+            );
+        } else if (gameData.getChessGame().isInCheck(currentTurn)) {
+            broadcastToGame(
+                    gameData.getGameID(),
+                    currentTurn.toString().toLowerCase() + " is in check",
+                    null
+            );
+        }
     }
 
     private void broadcastGameState(int gameID, ChessGame game) {

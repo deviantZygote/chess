@@ -166,6 +166,7 @@ public class Menu {
     }
 
     private void makeMove(String input) {
+
         Pattern pattern = Pattern.compile("(?i)^(mp|move\\s+piece)\\s+(\\S+)\\s+(\\S+)$");
         Matcher matcher = pattern.matcher(input);
 
