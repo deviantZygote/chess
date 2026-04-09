@@ -181,8 +181,8 @@ public class Menu {
             return;
         }
 
-        ChessPosition start = convertStringToChessPosition(matcher.group(2));
-        ChessPosition end = convertStringToChessPosition(matcher.group(3));
+        ChessPosition start = menuHelpers.convertStringToChessPosition(matcher.group(2));
+        ChessPosition end = menuHelpers.convertStringToChessPosition(matcher.group(3));
 
         if (!menuHelpers.makeMoveDataValidation(
                 start,
@@ -269,7 +269,7 @@ public class Menu {
 
         if (matcher.matches()) {
             String stringPosition = matcher.group(2);
-            ChessPosition targetPosition = convertStringToChessPosition(stringPosition);
+            ChessPosition targetPosition = menuHelpers.convertStringToChessPosition(stringPosition);
             if (targetPosition == null) {
                 printToTerminal("\n" + stringPosition + " not a valid position.\nTry again\n");
             } else {
@@ -292,31 +292,6 @@ public class Menu {
             }
         }
     }
-
-    private ChessPosition convertStringToChessPosition(String input) {
-        if (input == null) {
-            return null;
-        }
-
-        input = input.trim().toLowerCase();
-
-        if (input.length() != 2) {
-            return null;
-        }
-
-        char file = input.charAt(0);
-        char rank = input.charAt(1);
-
-        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
-            return null;
-        }
-
-        int column = file - 'a' + 1;
-        int row = rank - '0';
-
-        return new ChessPosition(row, column);
-    }
-
 
     private void showPlayerTurn() {
         printToTerminal("It is " + this.getChessGame().getTeamTurn().toString().toLowerCase() + "'s turn");
@@ -376,42 +351,7 @@ public class Menu {
     }
 
     private void printHelp () {
-        switch (this.state) {
-            case LOGGED_OUT:
-                printToTerminal("\nAvailable Commands:\n");
-                printToTerminal("help : h\n");
-                printToTerminal("quit : q\n");
-                printToTerminal("login : li\n");
-                printToTerminal("register : r\n");
-                break;
-            case LOGGED_IN:
-                printToTerminal("\nAvailable Commands:\n");
-                printToTerminal("help : h\n");
-                printToTerminal("logout : lo\n");
-                printToTerminal("create game : cg <gameName>\n");
-                printToTerminal("list games : lg\n");
-                printToTerminal("join game : jg <gameId> <color|c>\n");
-                printToTerminal("watch game : wg <gameId>\n");
-                break;
-            case IN_GAME:
-                printToTerminal("\nAvailable Commands:\n");
-                printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
-                printToTerminal("move piece : mp <positionX> <positionY> (ie. mp e4 e5)\n");
-                printToTerminal("show player turn : spt\n");
-                printToTerminal("draw board : db\n");
-                printToTerminal("leave match : lm\n");
-                printToTerminal("logout : lo\n");
-                break;
-            case WATCH_GAME:
-                printToTerminal("\nAvailable Commands:\n");
-                printToTerminal("draw board : db\n");
-                printToTerminal("show player turn : spt\n");
-                printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
-                printToTerminal("leave match : lm\n");
-                printToTerminal("logout : lo\n");
-                break;
-        }
-
+        menuHelpers.printHelp(this.state, this);
     }
 
     private void login() {

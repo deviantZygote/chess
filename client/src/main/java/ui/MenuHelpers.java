@@ -56,4 +56,64 @@ public class MenuHelpers {
                     clientDisplayId));
         }
     }
+
+    public void printHelp(STATE state, Menu menu) {
+        menu.printToTerminal("\nAvailable Commands:\n");
+
+        switch (state) {
+            case LOGGED_OUT -> {
+                menu.printToTerminal("help : h\n");
+                menu.printToTerminal("quit : q\n");
+                menu.printToTerminal("login : li\n");
+                menu.printToTerminal("register : r\n");
+            }
+            case LOGGED_IN -> {
+                menu.printToTerminal("help : h\n");
+                menu.printToTerminal("logout : lo\n");
+                menu.printToTerminal("create game : cg <gameName>\n");
+                menu.printToTerminal("list games : lg\n");
+                menu.printToTerminal("join game : jg <gameId> <color|c>\n");
+                menu.printToTerminal("watch game : wg <gameId>\n");
+            }
+            case IN_GAME -> {
+                menu.printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
+                menu.printToTerminal("move piece : mp <positionX> <positionY> (ie. mp e4 e5)\n");
+                menu.printToTerminal("show player turn : spt\n");
+                menu.printToTerminal("draw board : db\n");
+                menu.printToTerminal("leave match : lm\n");
+                menu.printToTerminal("logout : lo\n");
+            }
+            case WATCH_GAME -> {
+                menu.printToTerminal("draw board : db\n");
+                menu.printToTerminal("show player turn : spt\n");
+                menu.printToTerminal("show piece moves : spm <positionX> (ie. spm e4)\n");
+                menu.printToTerminal("leave match : lm\n");
+                menu.printToTerminal("logout : lo\n");
+            }
+        }
+    }
+
+    public ChessPosition convertStringToChessPosition(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        input = input.trim().toLowerCase();
+
+        if (input.length() != 2) {
+            return null;
+        }
+
+        char file = input.charAt(0);
+        char rank = input.charAt(1);
+
+        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+            return null;
+        }
+
+        int column = file - 'a' + 1;
+        int row = rank - '0';
+
+        return new ChessPosition(row, column);
+    }
 }
