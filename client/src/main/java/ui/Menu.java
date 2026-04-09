@@ -319,22 +319,7 @@ public class Menu {
         String username = scanner.nextLine();
 
 
-        String password = "";
-        String confirmPassword = "";
-        do {
-            printToTerminal("Enter a new password\n");
-            password = scanner.nextLine();
-            printToTerminal("re-enter your password\n");
-            confirmPassword = scanner.nextLine();
-
-            if (!confirmPassword.equals(password) ||
-                    password.isEmpty() ||
-                    confirmPassword.isEmpty()) {
-                printToTerminal("Your passwords aren't matching or are empty.\nTry again.\n");
-            }
-        } while (!confirmPassword.equals(password) ||
-                password.isEmpty() ||
-                confirmPassword.isEmpty());
+        String password = menuHelpers.gatherPassword(this);
 
         RegisterRequest registerRequest = new RegisterRequest(username, password, email);
 

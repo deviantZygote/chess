@@ -116,4 +116,25 @@ public class MenuHelpers {
 
         return new ChessPosition(row, column);
     }
+
+    public String gatherPassword(Menu menu) {
+        String password = "";
+        String confirmPassword = "";
+        do {
+            menu.printToTerminal("Enter a new password\n");
+            password = menu.scanner.nextLine();
+            menu.printToTerminal("re-enter your password\n");
+            confirmPassword = menu.scanner.nextLine();
+
+            if (!confirmPassword.equals(password) ||
+                    password.isEmpty() ||
+                    confirmPassword.isEmpty()) {
+                menu.printToTerminal("Your passwords aren't matching or are empty.\nTry again.\n");
+            }
+        } while (!confirmPassword.equals(password) ||
+                password.isEmpty() ||
+                confirmPassword.isEmpty());
+
+        return password;
+    }
 }
